@@ -1,3 +1,30 @@
 spring:
   application:
     name: policial-party-manager
+  datasource:
+    url: jdbc:mysql://localhost:3306/party_building?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  sql:
+    init:
+      mode: never
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# JWT 配置
+jwt:
+  secret: party-building-platform-secret-key-2026-very-long-secret
+  expiration: 86400000  # 24小时
+
+server:
+  port: 8080
