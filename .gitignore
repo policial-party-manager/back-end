@@ -1,8 +1,16 @@
 HELP.md
 target/
+*.docx
+*.doc
+*.jar
+*.war
 .mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+
+### Node ###
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.npm-cache/
 
 ### STS ###
 .apt_generated
@@ -26,8 +34,6 @@ target/
 /nbdist/
 /.nb-gradle/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
 ### VS Code ###
 .vscode/
