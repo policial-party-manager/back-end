@@ -1,6 +1,7 @@
 HELP.md
 target/
 *.docx
+*.doc
 *.jar
 *.war
 .mvn/wrapper/maven-wrapper.jar
