@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan("sicau.policialPartyManager.repository")
+@MapperScan("sicau.policialPartyManager.repository","sicau.policialPartyManager.dao")
 public class PolicialPartyManagerApplication {
 
     public static void main(String[] args) {
