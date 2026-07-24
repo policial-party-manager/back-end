@@ -26,12 +26,17 @@ public class MybatisPlusConfig {
             @Override
             public void insertFill(MetaObject metaObject) {
                 this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-                this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+                // updateTime 仅在实体有此字段时填充（tb_branch、tb_member 无此字段）
+                if (metaObject.hasSetter("updateTime")) {
+                    this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+                }
             }
 
             @Override
             public void updateFill(MetaObject metaObject) {
-                this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+                if (metaObject.hasSetter("updateTime")) {
+                    this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+                }
             }
         };
     }

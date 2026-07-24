@@ -7,10 +7,8 @@ import org.springframework.stereotype.Service;
 import sicau.policialPartyManager.dto.LoginRequest;
 import sicau.policialPartyManager.dto.LoginResponse;
 import sicau.policialPartyManager.dto.MenuVo;
-import sicau.policialPartyManager.entity.Branch;
-import sicau.policialPartyManager.entity.User;
-import sicau.policialPartyManager.repository.BranchMapper;
-import sicau.policialPartyManager.repository.UserMapper;
+import sicau.policialPartyManager.entity.*;
+import sicau.policialPartyManager.repository.*;
 import sicau.policialPartyManager.security.JwtUtil;
 
 import java.util.List;
@@ -20,7 +18,10 @@ import java.util.List;
 public class AuthService {
 
     private final UserMapper userMapper;
+    private final UserRoleMapper userRoleMapper;
+    private final RoleMapper roleMapper;
     private final BranchMapper branchMapper;
+    private final MemberMapper memberMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -37,11 +38,19 @@ public class AuthService {
             throw new IllegalArgumentException("账号已被停用");
         }
 
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+        // 从 RBAC 关联表获取角色
+        String role = getUserRole(user.getId());
 
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), role);
+
+        // 从 member 表反查用户所属支部
         String branchName = null;
-        if (user.getBranchId() != null) {
-            Branch branch = branchMapper.selectById(user.getBranchId());
+        Long branchId = null;
+        Member member = memberMapper.selectOne(
+                new LambdaQueryWrapper<Member>().eq(Member::getStudentNo, user.getUsername()));
+        if (member != null && member.getBranchId() != null) {
+            branchId = member.getBranchId();
+            Branch branch = branchMapper.selectById(branchId);
             if (branch != null) branchName = branch.getBranchName();
         }
 
@@ -50,11 +59,20 @@ public class AuthService {
                 .userId(user.getId())
                 .username(user.getUsername())
                 .realName(user.getRealName())
-                .role(user.getRole())
-                .branchId(user.getBranchId())
+                .role(role)
+                .branchId(branchId)
                 .branchName(branchName)
-                .menus(buildMenus(user.getRole()))
+                .menus(buildMenus(role))
                 .build();
+    }
+
+    /** 通过 tb_user_role + tb_role 获取用户角色编码 */
+    private String getUserRole(Long userId) {
+        UserRole userRole = userRoleMapper.selectOne(
+                new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, userId));
+        if (userRole == null) return "student";
+        Role role = roleMapper.selectById(userRole.getRoleId());
+        return role != null ? role.getRoleCode() : "student";
     }
 
     private List<MenuVo> buildMenus(String role) {
