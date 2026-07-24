@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import sicau.policialPartyManager.config.JwtAuthFilter.TokenUser;
+import sicau.policialPartyManager.entity.Identity;
 import sicau.policialPartyManager.entity.Member;
+import sicau.policialPartyManager.repository.IdentityMapper;
 import sicau.policialPartyManager.repository.MemberMapper;
 
 @Service
@@ -15,19 +17,18 @@ import sicau.policialPartyManager.repository.MemberMapper;
 public class MemberService {
 
     private final MemberMapper memberMapper;
+    private final IdentityMapper identityMapper;
 
     /**
      * 分页查询成员
      * super_admin 看全部，branch_admin 只能看本支部，student 只能看自己
      */
     public IPage<Member> page(int page, int size, String keyword, String college,
-                               String identity, TokenUser currentUser) {
+                               Long identityId, TokenUser currentUser) {
         LambdaQueryWrapper<Member> wrapper = new LambdaQueryWrapper<>();
 
         // 数据级权限隔离
         if ("branch_admin".equals(currentUser.role())) {
-            // 通过user表的branch_id来限制，此处需要先拿到当前用户的branch_id
-            // 这里简化处理：从当前登录用户关联的member获取branch
             wrapper.eq(Member::getBranchId, getCurrentUserBranchId(currentUser));
         } else if ("student".equals(currentUser.role())) {
             // 普通成员只能看自己
@@ -41,8 +42,8 @@ public class MemberService {
         if (StringUtils.hasText(college)) {
             wrapper.eq(Member::getCollege, college);
         }
-        if (StringUtils.hasText(identity)) {
-            wrapper.eq(Member::getIdentity, identity);
+        if (identityId != null) {
+            wrapper.eq(Member::getIdentityId, identityId);
         }
         wrapper.eq(Member::getStatus, 1);
         wrapper.orderByDesc(Member::getCreateTime);
@@ -50,8 +51,8 @@ public class MemberService {
         return memberMapper.selectPage(new Page<>(page, size), wrapper);
     }
 
-    public Member getById(Long id, TokenUser currentUser) {
-        Member member = memberMapper.selectById(id);
+    public Member getById(String studentNo, TokenUser currentUser) {
+        Member member = memberMapper.selectById(studentNo);
         if (member == null) return null;
 
         // 权限校验
@@ -69,8 +70,13 @@ public class MemberService {
     }
 
     public void save(Member member) {
-        if (!StringUtils.hasText(member.getIdentity())) {
-            member.setIdentity("ordinary");
+        if (member.getIdentityId() == null) {
+            // 默认设置为"普通学生"
+            Identity ordinary = identityMapper.selectOne(
+                    new LambdaQueryWrapper<Identity>().eq(Identity::getLevel, 1));
+            if (ordinary != null) {
+                member.setIdentityId(ordinary.getId());
+            }
         }
         memberMapper.insert(member);
     }
@@ -79,8 +85,8 @@ public class MemberService {
         memberMapper.updateById(member);
     }
 
-    public void delete(Long id, TokenUser currentUser) {
-        Member member = memberMapper.selectById(id);
+    public void delete(String studentNo, TokenUser currentUser) {
+        Member member = memberMapper.selectById(studentNo);
         if (member == null) return;
         if ("branch_admin".equals(currentUser.role())) {
             Long userBranchId = getCurrentUserBranchId(currentUser);

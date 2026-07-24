@@ -11,11 +11,9 @@ public class Branch {
     private Long id;
     private String branchName;
     private String college;
-    private String secretary;
+    private Long secretaryId;
     private String description;
     private Integer status;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
 }

@@ -12,8 +12,8 @@ public class User {
     private String username;
     private String password;
     private String realName;
-    private String role;       // super_admin / branch_admin / student
-    private Long branchId;
+    private String phone;
+    private String email;
     private Integer status;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
