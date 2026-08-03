@@ -19,3 +19,5 @@ create table tb_study_record
 create index tb_study_record_user_id_index
     on tb_study_record (user_id);
 
+record (user_id);
+

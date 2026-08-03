@@ -12,3 +12,5 @@ create table tb_role_permission
 )
     comment '角色权限关联表';
 
+��联表';
+

@@ -13,3 +13,5 @@ create table tb_activity_identity
 )
     comment '活动目标身份';
 
+标身份';
+

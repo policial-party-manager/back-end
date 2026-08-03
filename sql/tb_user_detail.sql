@@ -23,3 +23,5 @@ create table tb_user_detail
 )
     comment '用户详情';
 
+mment '用户详情';
+

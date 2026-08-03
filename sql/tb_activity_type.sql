@@ -8,3 +8,5 @@ create table tb_activity_type
 )
     comment '活动类型';
 
+�型';
+

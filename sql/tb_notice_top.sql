@@ -13,3 +13,5 @@ create table tb_notice_top
 )
     comment '公告置顶消息';
 
+顶消息';
+

@@ -23,3 +23,5 @@ create index tb_user_status_index
 create index tb_user_username_index
     on tb_user (username);
 
+n tb_user (username);
+
