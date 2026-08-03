@@ -6,5 +6,6 @@ create table tb_role
     description varchar(20) null comment '角色描述',
     constraint chk_role_code_prefix
         check (`role_name` like _utf8mb4\'ROLE_%\')
-);
+)
+comment ' 角色表 ';
 

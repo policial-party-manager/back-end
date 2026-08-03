@@ -12,5 +12,6 @@ create table tb_user_role
     constraint tb_user_role_tb_user_id_fk
         foreign key (user_id) references tb_user (id)
             on delete cascade
-);
+)
+    comment '用户角色关联表';
 

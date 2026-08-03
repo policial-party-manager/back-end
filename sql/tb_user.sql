@@ -14,7 +14,8 @@ create table tb_user
         unique (username),
     constraint chk_status
         check (`status` in (1, 2))
-);
+)
+    comment '用户表';
 
 create index tb_user_status_index
     on tb_user (status);
