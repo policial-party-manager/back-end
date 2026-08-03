@@ -16,3 +16,5 @@ create table tb_sign_record
 )
     comment '签到记录';
 
+签到记录';
+

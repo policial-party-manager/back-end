@@ -11,3 +11,5 @@ create table tb_identity
 )
     comment '政治身份';
 
+�身份';
+

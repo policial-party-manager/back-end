@@ -24,3 +24,5 @@ create table tb_notice
 create index tb_notice_title_index
     on tb_notice (title);
 
+ on tb_notice (title);
+

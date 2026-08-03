@@ -15,3 +15,5 @@ create table tb_user_role
 )
     comment '用户角色关联表';
 
+��关联表';
+
