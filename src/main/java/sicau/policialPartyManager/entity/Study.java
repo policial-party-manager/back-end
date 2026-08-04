@@ -6,28 +6,28 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
- * 角色权限关联表实体
- * 对应数据库表：tb_role_permission
+ * 课程实体
+ * 对应数据库表：tb_study
  *
  * @author sicau
  */
 @Data
-@TableName("tb_role_permission")
-public class RolePermission {
+@TableName("tb_study")
+public class Study {
 
     /**
-     * 主键ID（自增）
+     * 课程ID（主键，自增）
      */
     @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 角色id（关联 tb_role.id）
+     * 课程名
      */
-    private Long roleId;
+    private String name;
 
     /**
-     * 权限名称
+     * 类型
      */
-    private String permissionName;
+    private String type;
 }

@@ -1,19 +1,20 @@
 package sicau.policialPartyManager.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
- * 角色权限关联表实体
- * 对应数据库表：tb_role_permission
+ * 用户权限关联表实体
+ * 对应数据库表：tb_user_permission
  *
  * @author sicau
  */
 @Data
-@TableName("tb_role_permission")
-public class RolePermission {
+@TableName("tb_user_permission")
+public class UserPermission {
 
     /**
      * 主键ID（自增）
@@ -28,6 +29,8 @@ public class RolePermission {
 
     /**
      * 权限名称
+     * 注意：数据库列名为 permission_nmae（原 SQL 存在拼写错误）
      */
+    @TableField("permission_nmae")
     private String permissionName;
 }
