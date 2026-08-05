@@ -1,0 +1,15 @@
+package sicau.policialPartyManager.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class CurrentUserResponse {
+    
+    Long userId;
+    String role;
+    String username;
+}

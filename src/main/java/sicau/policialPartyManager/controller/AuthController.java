@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import sicau.policialPartyManager.common.Result;
 import sicau.policialPartyManager.config.CurrentUser;
 import sicau.policialPartyManager.config.JwtAuthFilter.TokenUser;
+import sicau.policialPartyManager.dto.CurrentUserResponse;
 import sicau.policialPartyManager.dto.LoginRequest;
 import sicau.policialPartyManager.dto.LoginResponse;
 import sicau.policialPartyManager.service.AuthService;
@@ -31,10 +32,6 @@ public class AuthController {
     @Operation(summary = "获取当前用户", description = "返回当前登录用户的基本信息")
     @GetMapping("/current")
     public Result<?> current(@CurrentUser TokenUser user) {
-        return Result.ok(Map.of(
-                "userId", user.userId(),
-                "username", user.username(),
-                "role", user.role()
-        ));
+        return Result.ok(new CurrentUserResponse(user.userId(),user.role(),user.username()));
     }
 }
