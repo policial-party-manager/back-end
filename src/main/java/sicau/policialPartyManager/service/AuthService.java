@@ -2,7 +2,6 @@ package sicau.policialPartyManager.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import sicau.policialPartyManager.dto.LoginRequest;
@@ -24,6 +23,7 @@ public class AuthService {
     private final BranchMapper branchMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final UserDetailMapper userDetailMapper;
 
     public LoginResponse login(LoginRequest request) {
         User user = userMapper.selectOne(
@@ -44,15 +44,22 @@ public class AuthService {
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), role);
 
         // 从 member 表反查用户所属支部
-        String branchName = null;
         Long branchId = null;
-        UserDetails userDetails = userD
+        String branchName = null;
+        UserDetail userDetail = userDetailMapper.selectById(user.getId());
+        if (userDetail.getBranchId() != null) {
+            Branch branch = branchMapper.selectById(userDetail.getBranchId());
+            if (branch == null) {
+                throw new RuntimeException("改用户党支部无法查询");
+            }
+            branchName = branch.getBranchName();
+        }
 
         return LoginResponse.builder()
                 .token(token)
                 .userId(user.getId())
                 .username(user.getUsername())
-                .realName(user.getRealName())
+                .realName(userDetail.getName())
                 .role(role)
                 .branchId(branchId)
                 .branchName(branchName)
