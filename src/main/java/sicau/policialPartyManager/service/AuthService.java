@@ -2,6 +2,7 @@ package sicau.policialPartyManager.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import sicau.policialPartyManager.dto.LoginRequest;
@@ -21,7 +22,6 @@ public class AuthService {
     private final UserRoleMapper userRoleMapper;
     private final RoleMapper roleMapper;
     private final BranchMapper branchMapper;
-    private final MemberMapper memberMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -29,12 +29,12 @@ public class AuthService {
         User user = userMapper.selectOne(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, request.getUsername()));
         if (user == null) {
-            throw new IllegalArgumentException("用户名或密码错误");
+            throw new IllegalArgumentException("用户名不存在");
         }
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("用户名或密码错误");
         }
-        if (user.getStatus() == 0) {
+        if (user.getStatus() != 1) {
             throw new IllegalArgumentException("账号已被停用");
         }
 
@@ -46,13 +46,7 @@ public class AuthService {
         // 从 member 表反查用户所属支部
         String branchName = null;
         Long branchId = null;
-        Member member = memberMapper.selectOne(
-                new LambdaQueryWrapper<Member>().eq(Member::getStudentNo, user.getUsername()));
-        if (member != null && member.getBranchId() != null) {
-            branchId = member.getBranchId();
-            Branch branch = branchMapper.selectById(branchId);
-            if (branch != null) branchName = branch.getBranchName();
-        }
+        UserDetails userDetails = userD
 
         return LoginResponse.builder()
                 .token(token)
@@ -72,7 +66,7 @@ public class AuthService {
                 new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, userId));
         if (userRole == null) return "student";
         Role role = roleMapper.selectById(userRole.getRoleId());
-        return role != null ? role.getRoleCode() : "student";
+        return role != null ? role.getRoleName() : "student";
     }
 
     private List<MenuVo> buildMenus(String role) {
