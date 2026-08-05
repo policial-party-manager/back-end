@@ -8,9 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import sicau.policialPartyManager.common.Result;
 import sicau.policialPartyManager.config.CurrentUser;
 import sicau.policialPartyManager.config.JwtAuthFilter.TokenUser;
-import sicau.policialPartyManager.entity.Member;
 import sicau.policialPartyManager.entity.User;
-import sicau.policialPartyManager.repository.MemberMapper;
 import sicau.policialPartyManager.repository.UserMapper;
 
 import java.util.Map;
@@ -22,7 +20,6 @@ import java.util.Map;
 public class UserController {
 
     private final UserMapper userMapper;
-    private final MemberMapper memberMapper;
 
     @Operation(summary = "获取个人信息")
     @GetMapping("/profile")

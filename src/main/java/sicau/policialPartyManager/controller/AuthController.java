@@ -13,8 +13,6 @@ import sicau.policialPartyManager.dto.LoginRequest;
 import sicau.policialPartyManager.dto.LoginResponse;
 import sicau.policialPartyManager.service.AuthService;
 
-import java.util.Map;
-
 @Tag(name = "认证", description = "登录、获取当前用户信息")
 @RestController
 @RequestMapping("/api/auth")
