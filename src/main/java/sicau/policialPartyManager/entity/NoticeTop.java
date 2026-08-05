@@ -6,14 +6,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
- * 角色权限关联表实体
- * 对应数据库表：tb_role_permission
+ * 公告置顶消息实体
+ * 对应数据库表：tb_notice_top
  *
  * @author sicau
  */
 @Data
-@TableName("tb_role_permission")
-public class RolePermission {
+@TableName("tb_notice_top")
+public class NoticeTop {
 
     /**
      * 主键ID（自增）
@@ -22,12 +22,12 @@ public class RolePermission {
     private Long id;
 
     /**
-     * 角色id（关联 tb_role.id）
+     * 公告id（关联 tb_notice.id）
      */
-    private Long roleId;
+    private Long noticeId;
 
     /**
-     * 权限名称
+     * 给哪些用户置顶（0 为所有用户，关联 tb_role.id）
      */
-    private String permissionName;
+    private Long roleId;
 }

@@ -8,40 +8,55 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 党支部表实体
- * 对应数据库表：tb_branch
+ * 新闻实体
+ * 对应数据库表：tb_news
  *
  * @author sicau
  */
 @Data
-@TableName("tb_branch")
-public class Branch {
+@TableName("tb_news")
+public class News {
 
     /**
-     * 支部ID（主键，自增）
+     * 新闻ID（主键，自增）
      */
     @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 支部名称
+     * 作者（关联 tb_user.id）
      */
-    private String branchName;
+    private Long author;
 
     /**
-     * 所属学院
+     * 标题
      */
-    private String college;
+    private String title;
 
     /**
-     * 支部书记用户id（关联 tb_user.id）
+     * 封面
      */
-    private Long secretaryId;
+    private String cover;
 
     /**
-     * 支部简介
+     * 类型
      */
-    private String description;
+    private String type;
+
+    /**
+     * 状态（1、2）
+     */
+    private Integer status;
+
+    /**
+     * 正文
+     */
+    private String content;
+
+    /**
+     * 浏览量
+     */
+    private Integer viewCount;
 
     /**
      * 创建时间
@@ -52,9 +67,4 @@ public class Branch {
      * 修改时间
      */
     private LocalDateTime updateTime;
-
-    /**
-     * 是否删除（0：未删除，1：已删除）
-     */
-    private Integer status;
 }
