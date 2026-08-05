@@ -22,6 +22,11 @@ public class UserDetail {
     private Long userId;
 
     /**
+     * 党支部id
+     */
+    private Long branchId;
+
+    /**
      * 学生id
      */
     private String studentId;
