@@ -126,6 +126,13 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- JTS Topology Suite，处理几何图形的标准Java库 -->
+        <dependency>
+            <groupId>org.locationtech.jts</groupId>
+            <artifactId>jts-core</artifactId>
+            <version>1.19.0</version> <!-- 请使用最新稳定版 -->
+        </dependency>
     </dependencies>
 
     <build>
