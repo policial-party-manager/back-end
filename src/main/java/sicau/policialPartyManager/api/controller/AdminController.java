@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sicau.policialPartyManager.api.dto.*;
 import sicau.policialPartyManager.config.CurrentUser;
+import sicau.policialPartyManager.log.OperationLog;
 import sicau.policialPartyManager.model.entity.*;
 import sicau.policialPartyManager.model.records.User;
 import sicau.policialPartyManager.service.*;
@@ -19,6 +20,7 @@ import sicau.policialPartyManager.service.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 管理员后台（对前端统一的 admin 入口）。
@@ -40,6 +42,7 @@ public class AdminController {
     private final AdminActivityService adminActivityService;
     private final AdminNewsService adminNewsService;
     private final AdminNoticeService adminNoticeService;
+    private final AdminOperationLogService adminOperationLogService;
 
     // =====================================================================
     // 一、用户管理
@@ -380,6 +383,39 @@ public class AdminController {
     public Result<Void> publishNotice(@PathVariable Long id) {
         adminNoticeService.publishNotice(id);
         return Result.ok();
+    }
+
+    // =====================================================================
+    // 七、统一操作日志（Elasticsearch）
+    // =====================================================================
+
+    @Operation(summary = "操作日志分页检索", description = "按类型/模块/操作者/IP/成功与否/关键字/时间范围检索；时间格式 ISO-8601 或 yyyy-MM-dd HH:mm:ss")
+    @GetMapping("/logs/page")
+    public Result<PageResult<OperationLog>> pageLogs(@RequestParam(defaultValue = "1") long page,
+                                                     @RequestParam(defaultValue = "10") long size,
+                                                     @RequestParam(required = false) String logType,
+                                                     @RequestParam(required = false) String module,
+                                                     @RequestParam(required = false) String operatorName,
+                                                     @RequestParam(required = false) String ip,
+                                                     @RequestParam(required = false) String keyword,
+                                                     @RequestParam(required = false) Boolean success,
+                                                     @RequestParam(required = false) String errorType,
+                                                     @RequestParam(required = false) String startTime,
+                                                     @RequestParam(required = false) String endTime) {
+        return Result.ok(adminOperationLogService.pageLogs(page, size, logType, module,
+                operatorName, ip, keyword, success, errorType, startTime, endTime));
+    }
+
+    @Operation(summary = "日志类型统计", description = "按 LOGIN/LOGOUT/ERROR/OPERATION 计数")
+    @GetMapping("/logs/stats")
+    public Result<Map<String, Long>> logStats() {
+        return Result.ok(adminOperationLogService.stats());
+    }
+
+    @Operation(summary = "清理过期日志", description = "删除保留天数（默认 90，1~730）之前的日志，返回删除条数")
+    @DeleteMapping("/logs/cleanup")
+    public Result<Long> cleanupLogs(@RequestParam(defaultValue = "90") int days) {
+        return Result.ok(adminOperationLogService.cleanup(days));
     }
 
     // =====================================================================
