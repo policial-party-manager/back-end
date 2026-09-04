@@ -3,9 +3,11 @@ package sicau.policialPartyManager.api.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sicau.policialPartyManager.api.dto.*;
@@ -60,16 +62,17 @@ public class AdminController {
         return Result.ok(adminUserService.getUser(id));
     }
 
-    @Operation(summary = "新增用户", description = "用户名唯一；密码缺省 123456；角色缺省普通成员")
+    @Operation(summary = "新增用户", description = "用户名唯一；密码缺省 123456（填写须 6-16 位字母/数字/下划线）；角色缺省普通成员")
     @PostMapping("/users")
-    public Result<Void> createUser(@RequestBody UserSaveRequest request) {
+    public Result<Void> createUser(@Validated({ValidationGroups.Create.class, jakarta.validation.groups.Default.class})
+                                   @RequestBody UserSaveRequest request) {
         adminUserService.createUser(request);
         return Result.ok();
     }
 
-    @Operation(summary = "编辑用户", description = "资料/角色/支部可改，用户名不可改")
+    @Operation(summary = "编辑用户", description = "资料/角色/支部可改，用户名不可改；支持部分更新（未传字段保留原值）")
     @PutMapping("/users/{id}")
-    public Result<Void> updateUser(@PathVariable Long id, @RequestBody UserSaveRequest request) {
+    public Result<Void> updateUser(@PathVariable Long id, @Valid @RequestBody UserSaveRequest request) {
         adminUserService.updateUser(id, request);
         return Result.ok();
     }
@@ -81,10 +84,10 @@ public class AdminController {
         return Result.ok();
     }
 
-    @Operation(summary = "重置用户密码", description = "password 为空则重置为 123456")
+    @Operation(summary = "重置用户密码", description = "新密码须 6-16 位字母/数字/下划线")
     @PutMapping("/users/{id}/password")
-    public Result<Void> resetPassword(@PathVariable Long id, @RequestBody(required = false) ResetPasswordRequest request) {
-        adminUserService.resetPassword(id, request == null ? null : request.getPassword());
+    public Result<Void> resetPassword(@PathVariable Long id, @Valid @RequestBody ResetPasswordRequest request) {
+        adminUserService.resetPassword(id, request.getPassword());
         return Result.ok();
     }
 
@@ -175,14 +178,14 @@ public class AdminController {
 
     @Operation(summary = "新增角色", description = "roleCode 规范化存储（ROLE_ 前缀大写），并分配权限名")
     @PostMapping("/roles")
-    public Result<Void> createRole(@RequestBody RoleSaveRequest request) {
+    public Result<Void> createRole(@Validated(ValidationGroups.Create.class) @RequestBody RoleSaveRequest request) {
         adminRoleService.saveRole(request);
         return Result.ok();
     }
 
-    @Operation(summary = "编辑角色")
+    @Operation(summary = "编辑角色", description = "roleCode 可空表示沿用原名；权限名分配请走 /roles/{id}/permissions")
     @PutMapping("/roles/{id}")
-    public Result<Void> updateRole(@PathVariable Long id, @RequestBody RoleSaveRequest request) {
+    public Result<Void> updateRole(@PathVariable Long id, @Valid @RequestBody RoleSaveRequest request) {
         adminRoleService.updateRole(id, request);
         return Result.ok();
     }
@@ -228,16 +231,16 @@ public class AdminController {
         return Result.ok(adminActivityService.getActivity(id));
     }
 
-    @Operation(summary = "新增活动", description = "主体 + 详情一起保存")
+    @Operation(summary = "新增活动", description = "主体 + 详情一起保存，标题必填")
     @PostMapping("/activities")
-    public Result<Void> createActivity(@RequestBody ActivitySaveRequest request, @CurrentUser User user) {
+    public Result<Void> createActivity(@Valid @RequestBody ActivitySaveRequest request, @CurrentUser User user) {
         adminActivityService.createActivity(request, user.userId());
         return Result.ok();
     }
 
     @Operation(summary = "编辑活动")
     @PutMapping("/activities/{id}")
-    public Result<Void> updateActivity(@PathVariable Long id, @RequestBody ActivitySaveRequest request,
+    public Result<Void> updateActivity(@PathVariable Long id, @Valid @RequestBody ActivitySaveRequest request,
                                        @CurrentUser User user) {
         adminActivityService.updateActivity(id, request, user.userId());
         return Result.ok();

@@ -24,7 +24,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.HexFormat;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * 认证服务实现：用户名密码 / 邮箱验证码 / 手机号验证码登录，
@@ -39,10 +38,6 @@ public class AuthServiceImpl implements AuthService {
     private static final String ROLE_STUDENT = "student";
     /** refresh token 白名单 Redis key 前缀 */
     private static final String REFRESH_KEY_PREFIX = "auth:refresh:";
-
-    private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^1\\d{10}$");
 
     private final UserMapper userMapper;
     private final UserRoleMapper userRoleMapper;
@@ -59,12 +54,6 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse loginUsernamePassword(LoginRequest request) {
         String username = trim(request.getUsername());
         String password = trim(request.getPassword());
-        if (!StringUtils.hasText(username)) {
-            throw new IllegalArgumentException("用户名不能为空");
-        }
-        if (!StringUtils.hasText(password)) {
-            throw new IllegalArgumentException("密码不能为空");
-        }
 
         User user = userMapper.selectOne(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, username));
@@ -82,15 +71,6 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse loginEmail(LoginRequest request) {
         String email = trim(request.getEmail());
         String code = trim(request.getVerifyCode());
-        if (!StringUtils.hasText(email)) {
-            throw new IllegalArgumentException("邮箱不能为空");
-        }
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
-            throw new IllegalArgumentException("邮箱格式不正确");
-        }
-        if (!StringUtils.hasText(code)) {
-            throw new IllegalArgumentException("验证码不能为空");
-        }
 
         UserDetail detail = userDetailMapper.selectOne(
                 new LambdaQueryWrapper<UserDetail>().eq(UserDetail::getEmail, email));
@@ -113,15 +93,6 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse loginPhone(LoginRequest request) {
         String phone = trim(request.getPhone());
         String code = trim(request.getVerifyCode());
-        if (!StringUtils.hasText(phone)) {
-            throw new IllegalArgumentException("手机号不能为空");
-        }
-        if (!PHONE_PATTERN.matcher(phone).matches()) {
-            throw new IllegalArgumentException("手机号格式不正确");
-        }
-        if (!StringUtils.hasText(code)) {
-            throw new IllegalArgumentException("验证码不能为空");
-        }
 
         UserDetail detail = userDetailMapper.selectOne(
                 new LambdaQueryWrapper<UserDetail>().eq(UserDetail::getPhone, phone));
@@ -150,14 +121,8 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("请提供邮箱或手机号");
         }
 
-        // 二者同时提供时以邮箱为准（约定：发送验证码的通道需与后续登录通道一致）
+        // 二者同时提供时以邮箱为准；至少提供其一由 Bean Validation（类级校验）保证
         String target = hasEmail ? email : phone;
-        if (hasEmail && !EMAIL_PATTERN.matcher(email).matches()) {
-            throw new IllegalArgumentException("邮箱格式不正确");
-        }
-        if (!hasEmail && !PHONE_PATTERN.matcher(phone).matches()) {
-            throw new IllegalArgumentException("手机号格式不正确");
-        }
 
         String code = codeUtil.createAndStore(target);
         if (hasEmail) {
@@ -172,9 +137,6 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse refresh(LoginRequest request) {
         String refreshToken = trim(request.getRefreshToken());
-        if (!StringUtils.hasText(refreshToken)) {
-            throw new IllegalArgumentException("refreshToken 不能为空");
-        }
 
         Claims claims;
         try {

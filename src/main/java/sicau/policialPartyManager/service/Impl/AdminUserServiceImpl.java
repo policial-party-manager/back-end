@@ -133,15 +133,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         String username = trim(request.getUsername());
         String realName = trim(request.getRealName());
         String studentId = trim(request.getStudentId());
-        if (!StringUtils.hasText(username)) {
-            throw new IllegalArgumentException("用户名不能为空");
-        }
-        if (!StringUtils.hasText(realName)) {
-            throw new IllegalArgumentException("姓名不能为空");
-        }
-        if (!StringUtils.hasText(studentId)) {
-            throw new IllegalArgumentException("学号不能为空");
-        }
+        // 必填校验由 Bean Validation（Create 组）在控制器层完成
         checkUsernameFree(username);
         checkBranch(request.getBranchId());
 
@@ -218,8 +210,10 @@ public class AdminUserServiceImpl implements AdminUserService {
         if (user == null) {
             throw new IllegalArgumentException("用户不存在");
         }
-        String password = StringUtils.hasText(newPassword) ? newPassword : DEFAULT_PASSWORD;
-        user.setPassword(passwordEncoder.encode(password));
+        if (!StringUtils.hasText(newPassword)) {
+            throw new IllegalArgumentException("新密码不能为空");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
         userMapper.updateById(user);
     }
 

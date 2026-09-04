@@ -1,5 +1,7 @@
 package sicau.policialPartyManager.api.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 /**
@@ -8,6 +10,7 @@ import lombok.Data;
 @Data
 public class ResetPasswordRequest {
 
-    /** 新密码；为空则由服务端重置为默认密码 123456 */
+    @NotBlank(message = "新密码不能为空")
+    @Pattern(regexp = "^[a-zA-Z0-9_]{6,16}$", message = "新密码只能包含字母、数字和下划线，且长度在6到16之间")
     private String password;
 }
