@@ -1,6 +1,6 @@
 package sicau.policialPartyManager.service;
 
-import sicau.policialPartyManager.config.JwtAuthFilter;
+import sicau.policialPartyManager.filter.JwtAuthFilter;
 
 import java.util.Map;
 

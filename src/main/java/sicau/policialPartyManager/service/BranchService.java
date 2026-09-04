@@ -1,6 +1,6 @@
 package sicau.policialPartyManager.service;
 
-import sicau.policialPartyManager.entity.Branch;
+import sicau.policialPartyManager.model.entity.Branch;
 
 import java.util.List;
 

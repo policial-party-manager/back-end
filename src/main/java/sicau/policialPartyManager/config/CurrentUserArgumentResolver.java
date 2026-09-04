@@ -9,7 +9,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import sicau.policialPartyManager.config.JwtAuthFilter.TokenUser;
+import sicau.policialPartyManager.model.records.User;
 
 /**
  * 解析 @CurrentUser 注解，自动从 SecurityContext 注入 TokenUser
@@ -20,7 +20,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(CurrentUser.class)
-                && parameter.getParameterType().equals(TokenUser.class);
+                && parameter.getParameterType().equals(User.class);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                                   @NonNull NativeWebRequest webRequest,
                                   WebDataBinderFactory binderFactory) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getDetails() instanceof TokenUser user) {
+        if (authentication != null && authentication.getDetails() instanceof User user) {
             return user;
         }
         return null;

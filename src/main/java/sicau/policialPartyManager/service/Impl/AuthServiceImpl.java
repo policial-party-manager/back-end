@@ -4,12 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import sicau.policialPartyManager.dto.LoginRequest;
-import sicau.policialPartyManager.dto.LoginResponse;
-import sicau.policialPartyManager.dto.MenuVo;
-import sicau.policialPartyManager.entity.*;
+import sicau.policialPartyManager.api.dto.LoginRequest;
+import sicau.policialPartyManager.api.dto.LoginResponse;
+import sicau.policialPartyManager.api.dto.MenuVo;
+import sicau.policialPartyManager.model.entity.*;
 import sicau.policialPartyManager.repository.*;
-import sicau.policialPartyManager.security.JwtUtil;
+import sicau.policialPartyManager.utils.JwtUtil;
 import sicau.policialPartyManager.service.AuthService;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserDetailMapper userDetailMapper;
 
     @Override
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse loginUsernamePassword(LoginRequest request) {
         User user = userMapper.selectOne(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, request.getUsername()));
         if (user == null) {
@@ -43,13 +43,15 @@ public class AuthServiceImpl implements AuthService {
         // 从 RBAC 关联表获取角色
         String role = getUserRole(user.getId());
 
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), role);
+        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getUsername(), role);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getUsername(), role);
 
         // 从 member 表反查用户所属支部
         Long branchId = null;
         String branchName = null;
         UserDetail userDetail = userDetailMapper.selectById(user.getId());
         if (userDetail.getBranchId() != null) {
+            branchId = userDetail.getBranchId();
             Branch branch = branchMapper.selectById(userDetail.getBranchId());
             if (branch == null) {
                 throw new RuntimeException("改用户党支部无法查询");
@@ -58,8 +60,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return LoginResponse.builder()
-                .token(token)
-                .userId(user.getId())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .username(user.getUsername())
                 .realName(userDetail.getName())
                 .role(role)
