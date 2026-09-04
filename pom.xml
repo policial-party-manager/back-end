@@ -19,6 +19,8 @@
         <jjwt.version>0.12.6</jjwt.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <pac4j.version>6.5.4</pac4j.version>
+        <!-- 覆盖 spring-boot 默认的 1.18.32：其不支持 JDK 25+（javac 直接崩溃），需在此机器上编译 -->
+        <lombok.version>1.18.42</lombok.version>
     </properties>
 
     <dependencies>
@@ -42,6 +44,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- 邮件发送（验证码） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
         <!-- MySQL -->

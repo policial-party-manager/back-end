@@ -1,11 +1,11 @@
 package sicau.policialPartyManager.service;
 
-import sicau.policialPartyManager.filter.JwtAuthFilter;
+import sicau.policialPartyManager.model.records.User;
 
 import java.util.Map;
 
 public interface UserService {
-    Object profile(JwtAuthFilter.TokenUser user);
+    Object profile(User user);
 
-    void updateProfile(Map<String, Object> body, JwtAuthFilter.TokenUser user);
+    void updateProfile(Map<String, Object> body, User user);
 }
