@@ -58,9 +58,6 @@ public class AdminRoleServiceImpl implements AdminRoleService {
     @Override
     public void saveRole(RoleSaveRequest request) {
         String code = trim(request.getRoleCode());
-        if (!StringUtils.hasText(code)) {
-            throw new IllegalArgumentException("角色编码不能为空");
-        }
         String roleName = toRoleName(code);
         checkCodeFree(roleName, null);
 
@@ -149,6 +146,9 @@ public class AdminRoleServiceImpl implements AdminRoleService {
 
     /** 名称转存储格式：统一 "ROLE_" + 大写（兼容 tb_role 的 ROLE_ 前缀约束） */
     private String toRoleName(String code) {
+        if (!StringUtils.hasText(code)) {
+            throw new IllegalArgumentException("角色编码不能为空");
+        }
         String c = code.trim();
         if (c.regionMatches(true, 0, "ROLE_", 0, 5)) {
             c = c.substring(5);

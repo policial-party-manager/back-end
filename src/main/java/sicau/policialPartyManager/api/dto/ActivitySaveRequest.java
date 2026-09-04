@@ -1,11 +1,12 @@
 package sicau.policialPartyManager.api.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 /**
- * 活动管理-新增/编辑请求（活动主体 + 活动详情字段）
+ * 活动管理-新增/编辑请求（活动主体 + 活动详情字段；标题必填）
  */
 @Data
 public class ActivitySaveRequest {
@@ -13,6 +14,7 @@ public class ActivitySaveRequest {
     /** 支部 id（可空=校级活动） */
     private Long branchId;
 
+    @NotBlank(message = "活动标题不能为空")
     private String title;
 
     private String description;
