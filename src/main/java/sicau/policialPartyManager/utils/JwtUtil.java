@@ -45,6 +45,11 @@ public class JwtUtil {
                 .compact();
     }
 
+    /** 刷新令牌有效期（毫秒），供 Redis 白名单同步过期时间 */
+    public long getRefreshTokenExpirationMillis() {
+        return refreshTokenExpiration;
+    }
+
     public Claims parseToken(String token) {
         return Jwts.parser()
                 .verifyWith(key)

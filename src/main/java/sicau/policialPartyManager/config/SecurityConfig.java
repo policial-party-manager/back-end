@@ -36,8 +36,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Knife4j / Swagger 文档
                 .requestMatchers("/doc.html", "/webjars/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
-                .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/login/**").permitAll()  // SSO callback预留
+                .requestMatchers("/api/auth/login", "/api/auth/login/**").permitAll()  // SSO callback预留
+                // 认证接口：登录 / 发送验证码 / 刷新 / 退出均无需携带 access token
+                .requestMatchers("/api/v1/auth/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

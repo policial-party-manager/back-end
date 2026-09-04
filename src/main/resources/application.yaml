@@ -10,6 +10,31 @@ spring:
     init:
       mode: never
 
+  # Redis（验证码存储 + refresh token 白名单）
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # 邮件（验证码发送）。
+  # 未配置 host 时不会创建 JavaMailSender，验证码将降级打印到日志（便于本地开发/联调）。
+  # 配置示例（QQ 邮箱）：
+  #   host: smtp.qq.com
+  #   port: 465
+  #   username: your-account@qq.com
+  #   password: 你的 SMTP 授权码（不是登录密码）
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
@@ -24,7 +49,10 @@ mybatis-plus:
 # JWT 配置
 jwt:
   secret: party-building-platform-secret-key-2026-very-long-secret
-  expiration: 86400000  # 24小时
+  # 访问令牌有效期：2 小时（毫秒）
+  access-token-expiration: 7200000
+  # 刷新令牌有效期：7 天（毫秒）
+  refresh-token-expiration: 604800000
 
 server:
   port: 8080
