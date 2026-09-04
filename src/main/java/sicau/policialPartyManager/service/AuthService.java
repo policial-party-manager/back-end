@@ -1,14 +1,16 @@
 package sicau.policialPartyManager.service;
 
 import jakarta.validation.Valid;
-import sicau.policialPartyManager.dto.LoginRequest;
-import sicau.policialPartyManager.dto.LoginResponse;
-import sicau.policialPartyManager.dto.MenuVo;
+import sicau.policialPartyManager.api.dto.LoginRequest;
+import sicau.policialPartyManager.api.dto.LoginResponse;
+import sicau.policialPartyManager.api.dto.MenuVo;
 
 import java.util.List;
 
 public interface AuthService {
-    LoginResponse login(@Valid LoginRequest request);
+    LoginResponse loginUsernamePassword(@Valid LoginRequest request);
+
+    LoginResponse loginEmail(@Valid LoginRequest request);
 
     String getUserRole(Long userId);
 

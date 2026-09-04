@@ -3,7 +3,7 @@ package sicau.policialPartyManager.service.Impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import sicau.policialPartyManager.entity.Branch;
+import sicau.policialPartyManager.model.entity.Branch;
 import sicau.policialPartyManager.repository.BranchMapper;
 import sicau.policialPartyManager.service.BranchService;
 
