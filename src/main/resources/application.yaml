@@ -35,6 +35,9 @@ spring:
           ssl:
             enable: true
 
+  profiles:
+    include: secret
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
