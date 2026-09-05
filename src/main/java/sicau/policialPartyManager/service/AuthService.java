@@ -28,7 +28,4 @@ public interface AuthService {
 
     /** 获取用户角色编码（super_admin / branch_admin / student） */
     String getUserRole(Long userId);
-
-    /** 根据角色构建前端菜单 */
-    List<MenuVo> buildMenus(String role);
 }

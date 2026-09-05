@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import sicau.policialPartyManager.api.dto.LoginRequest;
 import sicau.policialPartyManager.api.dto.LoginResponse;
-import sicau.policialPartyManager.api.dto.MenuVo;
 import sicau.policialPartyManager.model.entity.*;
 import sicau.policialPartyManager.repository.*;
 import sicau.policialPartyManager.utils.CodeUtil;
@@ -23,7 +22,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.HexFormat;
-import java.util.List;
 
 /**
  * 认证服务实现：用户名密码 / 邮箱验证码 / 手机号验证码登录，
@@ -192,27 +190,6 @@ public class AuthServiceImpl implements AuthService {
         return role == null ? ROLE_STUDENT : normalizeRole(role.getRoleName());
     }
 
-    @Override
-    public List<MenuVo> buildMenus(String role) {
-        return switch (role) {
-            case "super_admin" -> List.of(
-                    MenuVo.builder().name("首页仪表盘").path("/dashboard").icon("HomeFilled").build(),
-                    MenuVo.builder().name("成员管理").path("/members").icon("UserFilled").build(),
-                    MenuVo.builder().name("党支部管理").path("/branches").icon("OfficeBuilding").build(),
-                    MenuVo.builder().name("个人中心").path("/profile").icon("Setting").build()
-            );
-            case "branch_admin" -> List.of(
-                    MenuVo.builder().name("首页仪表盘").path("/dashboard").icon("HomeFilled").build(),
-                    MenuVo.builder().name("成员管理").path("/members").icon("UserFilled").build(),
-                    MenuVo.builder().name("个人中心").path("/profile").icon("Setting").build()
-            );
-            default -> List.of(
-                    MenuVo.builder().name("首页").path("/dashboard").icon("HomeFilled").build(),
-                    MenuVo.builder().name("个人中心").path("/profile").icon("Setting").build()
-            );
-        };
-    }
-
     // ======================= 私有辅助方法 =======================
 
     /** 登录成功统一装配：角色、token 签发与白名单、支部/姓名等用户信息 */
@@ -246,7 +223,6 @@ public class AuthServiceImpl implements AuthService {
                 .role(role)
                 .branchId(branchId)
                 .branchName(branchName)
-                .menus(buildMenus(role))
                 .build();
     }
 

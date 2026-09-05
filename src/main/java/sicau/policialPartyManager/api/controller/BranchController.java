@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v2/branch")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('SUPER_ADMIN')")
+@PreAuthorize("hasRole('BRANCH_ADMIN')")
 public class BranchController {
 
     private final BranchService branchService;

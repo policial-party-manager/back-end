@@ -21,12 +21,15 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
   # Elasticsearch（统一操作日志）。未配置/不可达时不阻塞启动，写入自动降级到应用日志。
   elasticsearch:
     uris: ${ES_URIS:http://localhost:9200}
     connection-timeout: 3s
     socket-timeout: 10s
+    username: ${ES_USERNAME:}
+    password: ${ES_PASSWORD:}
 
   # 邮件（验证码发送）。
   # 未配置 host 时不会创建 JavaMailSender，验证码将降级打印到日志（便于本地开发/联调）。
@@ -49,6 +52,7 @@ spring:
 
   profiles:
     include: secret
+
 
 mybatis-plus:
   configuration:
