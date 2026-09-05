@@ -174,6 +174,17 @@ public class AuthServiceImpl implements AuthService {
         // access token 为无状态 JWT，不做服务端黑名单，由前端丢弃即可，到期自然失效
     }
 
+    /** 按本地用户 id 直接签发登录态（CAS 等外部认证成功后调用） */
+    @Override
+    public LoginResponse loginByUserId(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        ensureEnabled(user);
+        return buildLoginResponse(user);
+    }
+
     /**
      * 通过 tb_user_role + tb_role 获取用户角色编码并规范化：
      * 兼容库中可能存储的 "ROLE_SUPER_ADMIN" / "ROLE_super_admin" / "super_admin" 等写法，

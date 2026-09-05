@@ -2,8 +2,11 @@ package sicau.policialPartyManager.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -15,15 +18,28 @@ import sicau.policialPartyManager.log.AuthContext;
 import sicau.policialPartyManager.log.LogType;
 import sicau.policialPartyManager.log.OperationLogPublisher;
 import sicau.policialPartyManager.service.AuthService;
+import sicau.policialPartyManager.service.SsoService;
 
-@Tag(name = "认证", description = "登录、验证码、退出登录、刷新令牌、获取当前用户信息")
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+@Tag(name = "认证", description = "登录、验证码、退出登录、刷新令牌、学校 CAS 统一身份认证")
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+    private final SsoService ssoService;
     private final OperationLogPublisher logPublisher;
+
+    @Value("${frontend.base-url:}")
+    private String frontendBaseUrl;
+
+    @Value("${frontend.sso-landing-path:/sso/login}")
+    private String ssoLandingPath;
 
     @Operation(summary = "用户名密码登录", description = "使用用户名和密码登录，返回 JWT token")
     @PostMapping("/login/userpass")
@@ -97,6 +113,56 @@ public class AuthController {
         logPublisher.operation("认证", "刷新令牌", "POST", "/api/v1/auth/refresh", true,
                 200, 0L, "刷新 JWT token 成功");
         return Result.ok(response);
+    }
+
+    // ======================= 学校 CAS 统一身份认证 =======================
+
+    @Operation(summary = "CAS 登录跳转", description = "返回学校统一身份认证登录页地址（前端 location 跳转即可）")
+    @GetMapping("/sso/login")
+    public Result<Map<String, String>> ssoLogin(HttpServletRequest request, HttpServletResponse response) {
+        String url = ssoService.buildCasLoginUrl(request, response);
+        if (url == null) {
+            throw new IllegalArgumentException("CAS 登录地址生成失败，请稍后重试");
+        }
+        return Result.ok(Map.of("url", url));
+    }
+
+    @Operation(summary = "CAS 回调", description = "CAS 验证后回跳：验票 → 仅已有账号 → 签发本站 token → 302 回前端落地页")
+    @GetMapping("/sso/callback")
+    public void ssoCallback(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String accountHint = firstText(request.getParameter("userId"), "CAS 用户");
+        try {
+            LoginResponse login = ssoService.handleCallback(request);
+            logPublisher.auth(LogType.LOGIN, login.getUsername(), "CAS统一认证", true, "登录成功");
+            redirectToFrontend(response, login.getAccessToken(), login.getRefreshToken(), null);
+        } catch (IllegalArgumentException e) {
+            logPublisher.auth(LogType.LOGIN, accountHint, "CAS统一认证", false, e.getMessage());
+            redirectToFrontend(response, null, null, e.getMessage());
+        }
+    }
+
+    /** 成功：landing?access_token=&refresh_token=；失败：landing?error=原因；未配置前端地址时返回文本提示 */
+    private void redirectToFrontend(HttpServletResponse response, String accessToken, String refreshToken,
+                                    String error) throws IOException {
+        if (!StringUtils.hasText(frontendBaseUrl)) {
+            response.setContentType("text/plain;charset=UTF-8");
+            if (StringUtils.hasText(error)) {
+                response.getWriter().write("SSO 登录失败：" + error);
+            } else {
+                response.getWriter().write("SSO 登录成功（未配置 frontend.base-url，无法回跳）");
+            }
+            return;
+        }
+        String landing = StringUtils.hasText(ssoLandingPath) && ssoLandingPath.startsWith("/")
+                ? ssoLandingPath : "/" + (ssoLandingPath == null ? "sso/login" : ssoLandingPath);
+        StringBuilder target = new StringBuilder(frontendBaseUrl).append(landing).append('?');
+        if (StringUtils.hasText(error)) {
+            target.append("error=").append(URLEncoder.encode(error, StandardCharsets.UTF_8));
+        } else {
+            target.append("access_token=").append(accessToken)
+                    .append("&refresh_token=").append(refreshToken);
+        }
+        response.sendRedirect(target.toString());
     }
 
     private String firstText(String value, String fallback) {

@@ -2,9 +2,6 @@ package sicau.policialPartyManager.service;
 
 import sicau.policialPartyManager.api.dto.LoginRequest;
 import sicau.policialPartyManager.api.dto.LoginResponse;
-import sicau.policialPartyManager.api.dto.MenuVo;
-
-import java.util.List;
 
 public interface AuthService {
 
@@ -25,6 +22,9 @@ public interface AuthService {
 
     /** 退出登录：吊销 refresh token（access token 到期自然失效） */
     void logout(LoginRequest request);
+
+    /** 按本地用户 id 直接签发登录态（CAS/后台代登录等；账号须存在且启用） */
+    LoginResponse loginByUserId(Long userId);
 
     /** 获取用户角色编码（super_admin / branch_admin / student） */
     String getUserRole(Long userId);
