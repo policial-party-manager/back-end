@@ -47,10 +47,14 @@ public class AdminUserServiceImpl implements AdminUserService {
     /** 默认密码 */
     public static final String DEFAULT_PASSWORD = "123456";
 
-    private static final String[] IMPORT_HEADERS = {"学号", "姓名", "手机号", "邮箱", "所属支部", "角色"};
+    /** 导入列：前 6 列必填区 + 后 7 列选填（新扩展字段） */
+    private static final String[] IMPORT_HEADERS = {"学号", "姓名", "手机号", "邮箱", "所属支部", "角色",
+            "性别", "学院", "年级", "专业", "班级", "紧急联系人", "备注"};
     private static final String[][] IMPORT_EXAMPLE = {
-            {"20230001", "张三", "13800138000", "zhangsan@stu.sicau.edu.cn", "第一党支部", "普通成员"},
-            {"20230002", "李四", "13900139000", "lisi@stu.sicau.edu.cn", "第一党支部", ""}
+            {"20230001", "张三", "13800138000", "zhangsan@stu.sicau.edu.cn", "第一党支部", "普通成员",
+                    "男", "信息工程学院", "2023", "软件工程", "软工2301", "张三家长 13800000000", ""},
+            {"20230002", "李四", "13900139000", "lisi@stu.sicau.edu.cn", "第一党支部", "",
+                    "", "", "", "", "", "", ""}
     };
     private static final Pattern PHONE_PATTERN = Pattern.compile("^1\\d{10}$");
 
@@ -131,11 +135,11 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Override
     public void createUser(UserSaveRequest request) {
         String username = trim(request.getUsername());
-        String realName = trim(request.getRealName());
-        String studentId = trim(request.getStudentId());
         // 必填校验由 Bean Validation（Create 组）在控制器层完成
         checkUsernameFree(username);
-        checkBranch(request.getBranchId());
+        if (request.getBranchId() != null) {
+            checkBranch(request.getBranchId());
+        }
 
         User user = new User();
         user.setUsername(username);
@@ -145,9 +149,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         userMapper.insert(user);
         Long userId = user.getId();
 
-        insertOrUpdateDetail(userId, realName, studentId,
-                trim(request.getPhone()), trim(request.getEmail()),
-                trim(request.getIdentityCardNumber()), request.getBranchId(), null);
+        saveDetail(userId, request);
         assignRole(userId, request.getRoleId());
     }
 
@@ -157,35 +159,30 @@ public class AdminUserServiceImpl implements AdminUserService {
         if (user == null) {
             throw new IllegalArgumentException("用户不存在");
         }
-        checkBranch(request.getBranchId());
+        if (request.getBranchId() != null) {
+            checkBranch(request.getBranchId());
+        }
 
-        // 用户名不允许修改；详情字段可空更新（空值=不改动除分支外的基础资料需要显式传）
+        // 用户名不允许修改；编辑支持部分更新（request 中为 null 的字段保持原值，空串表示清空）
         UserDetail detail = userDetailMapper.selectById(id);
-        String realName = trim(request.getRealName());
-        String studentId = trim(request.getStudentId());
-        if (detail != null) {
-            realName = realName != null ? realName : detail.getName();
-            studentId = studentId != null ? studentId : detail.getStudentId();
-        } else if (!StringUtils.hasText(realName) || !StringUtils.hasText(studentId)) {
+        boolean detailExisted = detail != null;
+        if (!detailExisted
+                && !StringUtils.hasText(request.getRealName())
+                && !StringUtils.hasText(request.getStudentId())) {
             throw new IllegalArgumentException("该用户缺少详情资料，请补充姓名与学号");
         }
-        String phone = trim(request.getPhone());
-        String email = trim(request.getEmail());
-        String idCard = trim(request.getIdentityCardNumber());
-        if (detail != null && phone == null) {
-            phone = detail.getPhone();
+        if (!detailExisted) {
+            detail = new UserDetail();
+            detail.setUserId(id);
         }
-        if (detail != null && email == null) {
-            email = detail.getEmail();
+        fillDetail(detail, request);
+        checkDetailUnique(id, detail.getStudentId(), detail.getPhone(), detail.getEmail());
+        if (detailExisted) {
+            userDetailMapper.updateById(detail);
+        } else {
+            userDetailMapper.insert(detail);
         }
-        if (detail != null && idCard == null) {
-            idCard = detail.getIdentityCardNumber();
-        }
-        checkDetailUnique(id, studentId, phone, email);
 
-        insertOrUpdateDetail(id, realName, studentId, phone, email, idCard,
-                request.getBranchId() != null ? request.getBranchId()
-                        : (detail != null ? detail.getBranchId() : null), id);
         if (request.getRoleId() != null) {
             assignRole(id, request.getRoleId());
         }
@@ -294,6 +291,13 @@ public class AdminUserServiceImpl implements AdminUserService {
                 vo.setPhone(detail.getPhone());
                 vo.setEmail(detail.getEmail());
                 vo.setIdentityCardNumber(detail.getIdentityCardNumber());
+                vo.setGender(detail.getGender());
+                vo.setCollege(detail.getCollege());
+                vo.setGrade(detail.getGrade());
+                vo.setMajor(detail.getMajor());
+                vo.setClassName(detail.getClassName());
+                vo.setContactPerson(detail.getContactPerson());
+                vo.setRemark(detail.getRemark());
                 vo.setBranchId(detail.getBranchId());
                 Branch branch = detail.getBranchId() == null ? null : branchMap.get(detail.getBranchId());
                 vo.setBranchName(branch == null ? null : branch.getBranchName());
@@ -307,30 +311,43 @@ public class AdminUserServiceImpl implements AdminUserService {
         return vos;
     }
 
-    /** 新增或更新用户详情；dupSkipId 用于编辑时排除自身 */
-    private void insertOrUpdateDetail(Long userId, String realName, String studentId, String phone,
-                                      String email, String idCard, Long branchId, Long dupSkipId) {
-        checkDetailUnique(dupSkipId, studentId, phone, email);
-        UserDetail detail = userDetailMapper.selectById(userId);
-        if (detail == null) {
-            detail = new UserDetail();
-            detail.setUserId(userId);
+    /** 新增用户详情：先唯一性检查再插入（仅用于 createUser 前置校验后） */
+    private void saveDetail(Long userId, UserSaveRequest request) {
+        UserDetail detail = new UserDetail();
+        detail.setUserId(userId);
+        fillDetail(detail, request);
+        if (detail.getName() == null || detail.getStudentId() == null) {
+            throw new IllegalArgumentException("姓名与学号不能为空");
         }
-        if (realName != null) {
-            detail.setName(realName);
+        checkDetailUnique(userId, detail.getStudentId(), detail.getPhone(), detail.getEmail());
+        userDetailMapper.insert(detail);
+    }
+
+    /** 覆盖式填充：request 中为 null 的字段保持不变（新增即默认空）；空串视为清空 */
+    private void fillDetail(UserDetail detail, UserSaveRequest request) {
+        setIfPresent(detail::setName, request.getRealName());
+        setIfPresent(detail::setStudentId, request.getStudentId());
+        setIfPresent(detail::setPhone, request.getPhone());
+        setIfPresent(detail::setEmail, request.getEmail());
+        setIfPresent(detail::setIdentityCardNumber, request.getIdentityCardNumber());
+        setIfPresent(detail::setGender, request.getGender());
+        setIfPresent(detail::setCollege, request.getCollege());
+        setIfPresent(detail::setGrade, request.getGrade());
+        setIfPresent(detail::setMajor, request.getMajor());
+        setIfPresent(detail::setClassName, request.getClassName());
+        setIfPresent(detail::setContactPerson, request.getContactPerson());
+        setIfPresent(detail::setRemark, request.getRemark());
+        if (request.getBranchId() != null) {
+            detail.setBranchId(request.getBranchId());
         }
-        if (studentId != null) {
-            detail.setStudentId(studentId);
+    }
+
+    /** value 为 null 则不动；否则去空白，空串存 null */
+    private void setIfPresent(java.util.function.Consumer<String> setter, String value) {
+        if (value == null) {
+            return;
         }
-        detail.setPhone(phone);
-        detail.setEmail(email);
-        detail.setIdentityCardNumber(idCard);
-        detail.setBranchId(branchId);
-        if (detail.getUserId() != null && userDetailMapper.selectById(userId) != null) {
-            userDetailMapper.updateById(detail);
-        } else {
-            userDetailMapper.insert(detail);
-        }
+        setter.accept(trimToNull(value));
     }
 
     /** 详情唯一约束检查（学号/手机/邮箱）；dupSkipId 不为空时排除该用户 */
@@ -425,7 +442,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         return role.toLowerCase();
     }
 
-    /** 导入单行用户 */
+    /** 导入单行用户（列：0-5 基础，6-12 新扩展字段，均可空） */
     private void importOneUser(String[] row) {
         String studentId = cell(row, 0);
         String realName = cell(row, 1);
@@ -515,9 +532,17 @@ public class AdminUserServiceImpl implements AdminUserService {
         detail.setUserId(userId);
         detail.setName(realName);
         detail.setStudentId(studentId);
-        detail.setPhone(StringUtils.hasText(phone) ? phone : null);
-        detail.setEmail(StringUtils.hasText(email) ? email : null);
+        detail.setPhone(cellOrNull(row, 2));
+        detail.setEmail(cellOrNull(row, 3));
         detail.setBranchId(branchId);
+        // 新扩展字段（选填）
+        detail.setGender(cellOrNull(row, 6));
+        detail.setCollege(cellOrNull(row, 7));
+        detail.setGrade(cellOrNull(row, 8));
+        detail.setMajor(cellOrNull(row, 9));
+        detail.setClassName(cellOrNull(row, 10));
+        detail.setContactPerson(cellOrNull(row, 11));
+        detail.setRemark(cellOrNull(row, 12));
         userDetailMapper.insert(detail);
 
         UserRole userRole = new UserRole();
@@ -530,7 +555,17 @@ public class AdminUserServiceImpl implements AdminUserService {
         return index < row.length && row[index] != null ? row[index].trim() : "";
     }
 
+    private String cellOrNull(String[] row, int index) {
+        String value = cell(row, index);
+        return value.isEmpty() ? null : value;
+    }
+
     private String trim(String value) {
         return value == null ? null : value.trim();
+    }
+
+    private String trimToNull(String value) {
+        String v = trim(value);
+        return v == null || v.isEmpty() ? null : v;
     }
 }

@@ -12,6 +12,7 @@ import sicau.policialPartyManager.service.UserService;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * 个人中心服务（当前用户资料查看/编辑），同时保证 UserController 可装配、应用可启动。
@@ -35,24 +36,23 @@ public class UserServiceImpl implements UserService {
         data.put("status", entity == null ? null : entity.getStatus());
 
         UserDetail detail = userDetailMapper.selectById(userId);
-        if (detail != null) {
-            data.put("realName", detail.getName());
-            data.put("studentId", detail.getStudentId());
-            data.put("phone", detail.getPhone());
-            data.put("email", detail.getEmail());
-            data.put("identityCardNumber", detail.getIdentityCardNumber());
-            data.put("branchId", detail.getBranchId());
-            if (detail.getBranchId() != null) {
-                Branch branch = branchMapper.selectById(detail.getBranchId());
-                data.put("branchName", branch == null ? null : branch.getBranchName());
-            }
-        } else {
-            data.put("realName", null);
-            data.put("studentId", null);
-            data.put("phone", null);
-            data.put("email", null);
-            data.put("identityCardNumber", null);
-            data.put("branchId", null);
+        putDetailText(data, "realName", detail == null ? null : detail.getName());
+        putDetailText(data, "studentId", detail == null ? null : detail.getStudentId());
+        putDetailText(data, "phone", detail == null ? null : detail.getPhone());
+        putDetailText(data, "email", detail == null ? null : detail.getEmail());
+        putDetailText(data, "identityCardNumber", detail == null ? null : detail.getIdentityCardNumber());
+        putDetailText(data, "gender", detail == null ? null : detail.getGender());
+        putDetailText(data, "college", detail == null ? null : detail.getCollege());
+        putDetailText(data, "grade", detail == null ? null : detail.getGrade());
+        putDetailText(data, "major", detail == null ? null : detail.getMajor());
+        putDetailText(data, "className", detail == null ? null : detail.getClassName());
+        putDetailText(data, "contactPerson", detail == null ? null : detail.getContactPerson());
+        putDetailText(data, "remark", detail == null ? null : detail.getRemark());
+        data.put("branchId", detail == null ? null : detail.getBranchId());
+        data.put("branchName", null);
+        if (detail != null && detail.getBranchId() != null) {
+            Branch branch = branchMapper.selectById(detail.getBranchId());
+            data.put("branchName", branch == null ? null : branch.getBranchName());
         }
         return data;
     }
@@ -61,39 +61,46 @@ public class UserServiceImpl implements UserService {
     public void updateProfile(Map<String, Object> body, User user) {
         Long userId = user.userId();
         UserDetail detail = userDetailMapper.selectById(userId);
-        if (detail == null) {
+        boolean existed = detail != null;
+        if (!existed) {
             detail = new UserDetail();
             detail.setUserId(userId);
         }
-        String name = asString(body.get("name"));
-        if (name != null) {
-            detail.setName(name);
-        }
-        String studentId = asString(body.get("studentId"));
-        if (studentId != null) {
-            detail.setStudentId(studentId);
-        }
-        String phone = asString(body.get("phone"));
-        if (phone != null) {
-            detail.setPhone(phone);
-        }
-        String email = asString(body.get("email"));
-        if (email != null) {
-            detail.setEmail(email);
-        }
-        String identityCardNumber = asString(body.get("identityCardNumber"));
-        if (identityCardNumber != null) {
-            detail.setIdentityCardNumber(identityCardNumber);
-        }
+
+        Map<String, Consumer<String>> setters = Map.ofEntries(
+                Map.entry("realName", detail::setName),
+                Map.entry("studentId", detail::setStudentId),
+                Map.entry("phone", detail::setPhone),
+                Map.entry("email", detail::setEmail),
+                Map.entry("identityCardNumber", detail::setIdentityCardNumber),
+                Map.entry("gender", detail::setGender),
+                Map.entry("college", detail::setCollege),
+                Map.entry("grade", detail::setGrade),
+                Map.entry("major", detail::setMajor),
+                Map.entry("className", detail::setClassName),
+                Map.entry("contactPerson", detail::setContactPerson),
+                Map.entry("remark", detail::setRemark)
+        );
+        setters.forEach((key, setter) -> {
+            String value = asString(body.get(key));
+            if (value != null) {
+                setter.accept(value);
+            }
+        });
+
         Object branchId = body.get("branchId");
         if (branchId instanceof Number n) {
             detail.setBranchId(n.longValue());
         }
-        if (userDetailMapper.selectById(userId) == null) {
-            userDetailMapper.insert(detail);
-        } else {
+        if (existed) {
             userDetailMapper.updateById(detail);
+        } else {
+            userDetailMapper.insert(detail);
         }
+    }
+
+    private void putDetailText(Map<String, Object> data, String key, String value) {
+        data.put(key, value);
     }
 
     private String asString(Object value) {
