@@ -74,44 +74,6 @@ paths:
                       branchName:
                         type: "string"
                         description: ""
-                      menus:
-                        type: "array"
-                        description: ""
-                        items:
-                          type: "object"
-                          properties:
-                            name:
-                              type: "string"
-                              description: ""
-                            path:
-                              type: "string"
-                              description: ""
-                            icon:
-                              type: "string"
-                              description: ""
-                            children:
-                              type: "array"
-                              description: ""
-                              items:
-                                type: "object"
-                                properties:
-                                  name:
-                                    type: "string"
-                                    description: ""
-                                  path:
-                                    type: "string"
-                                    description: ""
-                                  icon:
-                                    type: "string"
-                                    description: ""
-                                  children:
-                                    type: "array"
-                                    description: ""
-                                    items:
-                                      type: "object"
-                                      properties: {}
-                                description: "sicau.policialPartyManager.api.dto.MenuVo"
-                          description: "sicau.policialPartyManager.api.dto.MenuVo"
                     description: ""
   /api/v1/auth/login/email:
     post:
@@ -185,44 +147,6 @@ paths:
                       branchName:
                         type: "string"
                         description: ""
-                      menus:
-                        type: "array"
-                        description: ""
-                        items:
-                          type: "object"
-                          properties:
-                            name:
-                              type: "string"
-                              description: ""
-                            path:
-                              type: "string"
-                              description: ""
-                            icon:
-                              type: "string"
-                              description: ""
-                            children:
-                              type: "array"
-                              description: ""
-                              items:
-                                type: "object"
-                                properties:
-                                  name:
-                                    type: "string"
-                                    description: ""
-                                  path:
-                                    type: "string"
-                                    description: ""
-                                  icon:
-                                    type: "string"
-                                    description: ""
-                                  children:
-                                    type: "array"
-                                    description: ""
-                                    items:
-                                      type: "object"
-                                      properties: {}
-                                description: "sicau.policialPartyManager.api.dto.MenuVo"
-                          description: "sicau.policialPartyManager.api.dto.MenuVo"
                     description: ""
   /api/v1/auth/login/phone:
     post:
@@ -296,44 +220,6 @@ paths:
                       branchName:
                         type: "string"
                         description: ""
-                      menus:
-                        type: "array"
-                        description: ""
-                        items:
-                          type: "object"
-                          properties:
-                            name:
-                              type: "string"
-                              description: ""
-                            path:
-                              type: "string"
-                              description: ""
-                            icon:
-                              type: "string"
-                              description: ""
-                            children:
-                              type: "array"
-                              description: ""
-                              items:
-                                type: "object"
-                                properties:
-                                  name:
-                                    type: "string"
-                                    description: ""
-                                  path:
-                                    type: "string"
-                                    description: ""
-                                  icon:
-                                    type: "string"
-                                    description: ""
-                                  children:
-                                    type: "array"
-                                    description: ""
-                                    items:
-                                      type: "object"
-                                      properties: {}
-                                description: "sicau.policialPartyManager.api.dto.MenuVo"
-                          description: "sicau.policialPartyManager.api.dto.MenuVo"
                     description: ""
   /api/v1/auth/verifyCode:
     post:
@@ -501,45 +387,38 @@ paths:
                       branchName:
                         type: "string"
                         description: ""
-                      menus:
-                        type: "array"
-                        description: ""
-                        items:
-                          type: "object"
-                          properties:
-                            name:
-                              type: "string"
-                              description: ""
-                            path:
-                              type: "string"
-                              description: ""
-                            icon:
-                              type: "string"
-                              description: ""
-                            children:
-                              type: "array"
-                              description: ""
-                              items:
-                                type: "object"
-                                properties:
-                                  name:
-                                    type: "string"
-                                    description: ""
-                                  path:
-                                    type: "string"
-                                    description: ""
-                                  icon:
-                                    type: "string"
-                                    description: ""
-                                  children:
-                                    type: "array"
-                                    description: ""
-                                    items:
-                                      type: "object"
-                                      properties: {}
-                                description: "sicau.policialPartyManager.api.dto.MenuVo"
-                          description: "sicau.policialPartyManager.api.dto.MenuVo"
                     description: ""
+  /api/v1/auth/sso/login:
+    get:
+      summary: "CAS 登录跳转"
+      description: "CAS 登录跳转"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      key:
+                        type: "string"
+                    description: ""
+  /api/v1/auth/sso/callback:
+    get:
+      summary: "CAS 回调"
+      description: "CAS 回调"
+      responses:
+        "200":
+          description: "No Content"
   /api/v4/user/profile:
     get:
       summary: "获取个人信息"
@@ -731,6 +610,27 @@ paths:
                             identityCardNumber:
                               type: "string"
                               description: ""
+                            gender:
+                              type: "string"
+                              description: "性别"
+                            college:
+                              type: "string"
+                              description: "学院"
+                            grade:
+                              type: "string"
+                              description: "年级"
+                            major:
+                              type: "string"
+                              description: "专业"
+                            className:
+                              type: "string"
+                              description: "班级"
+                            contactPerson:
+                              type: "string"
+                              description: "紧急联系人"
+                            remark:
+                              type: "string"
+                              description: "备注"
                             branchId:
                               type: "integer"
                               description: "所属支部 id"
@@ -819,6 +719,27 @@ paths:
                       identityCardNumber:
                         type: "string"
                         description: ""
+                      gender:
+                        type: "string"
+                        description: "性别"
+                      college:
+                        type: "string"
+                        description: "学院"
+                      grade:
+                        type: "string"
+                        description: "年级"
+                      major:
+                        type: "string"
+                        description: "专业"
+                      className:
+                        type: "string"
+                        description: "班级"
+                      contactPerson:
+                        type: "string"
+                        description: "紧急联系人"
+                      remark:
+                        type: "string"
+                        description: "备注"
                       branchId:
                         type: "integer"
                         description: "所属支部 id"
@@ -883,6 +804,27 @@ paths:
                 identityCardNumber:
                   type: "string"
                   description: ""
+                gender:
+                  type: "string"
+                  description: "性别"
+                college:
+                  type: "string"
+                  description: "学院"
+                grade:
+                  type: "string"
+                  description: "年级"
+                major:
+                  type: "string"
+                  description: "专业"
+                className:
+                  type: "string"
+                  description: "班级"
+                contactPerson:
+                  type: "string"
+                  description: "紧急联系人"
+                remark:
+                  type: "string"
+                  description: "备注"
                 branchId:
                   type: "integer"
                   description: "所属支部 id（可空）"
@@ -947,6 +889,27 @@ paths:
                 identityCardNumber:
                   type: "string"
                   description: ""
+                gender:
+                  type: "string"
+                  description: "性别"
+                college:
+                  type: "string"
+                  description: "学院"
+                grade:
+                  type: "string"
+                  description: "年级"
+                major:
+                  type: "string"
+                  description: "专业"
+                className:
+                  type: "string"
+                  description: "班级"
+                contactPerson:
+                  type: "string"
+                  description: "紧急联系人"
+                remark:
+                  type: "string"
+                  description: "备注"
                 branchId:
                   type: "integer"
                   description: "所属支部 id（可空）"
@@ -3221,6 +3184,240 @@ paths:
                   data:
                     type: "string"
                     description: ""
+  /api/v4/admin/logs/page:
+    get:
+      summary: "操作日志分页检索"
+      description: "操作日志分页检索"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "1"
+      - name: "size"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "10"
+      - name: "logType"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "module"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "operatorName"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "ip"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "keyword"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "success"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "boolean"
+          nullable: false
+      - name: "errorType"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "startTime"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "endTime"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      records:
+                        type: "array"
+                        description: "当前页数据"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "string"
+                              description: "主键（UUID）"
+                            logType:
+                              type: "string"
+                              description: "日志类型：LOGIN / LOGOUT / ERROR / OPERATION"
+                            module:
+                              type: "string"
+                              description: "业务模块（如 用户管理 / 认证 / 活动管理）"
+                            action:
+                              type: "string"
+                              description: "动作描述（如 新增 / 编辑 / 批量导入 / 登录成功）"
+                            method:
+                              type: "string"
+                              description: "HTTP 方法（GET/POST/...，非请求类日志为空）"
+                            path:
+                              type: "string"
+                              description: "请求路径"
+                            operatorId:
+                              type: "integer"
+                              description: "操作者 id（登录前为空）"
+                              format: "int64"
+                            operatorName:
+                              type: "string"
+                              description: "操作者（登录前用账号名/邮箱/手机号）"
+                            role:
+                              type: "string"
+                              description: "操作者角色编码"
+                            ipAddress:
+                              type: "string"
+                              description: "客户端 IP"
+                            userAgent:
+                              type: "string"
+                              description: "User-Agent"
+                            success:
+                              type: "boolean"
+                              description: "是否成功"
+                            resultCode:
+                              type: "integer"
+                              description: "HTTP 状态码或业务码（错误日志必填）"
+                            errorType:
+                              type: "string"
+                              description: "异常类型（ERROR 日志）"
+                            message:
+                              type: "string"
+                              description: "详细说明/错误信息"
+                            durationMs:
+                              type: "integer"
+                              description: "耗时（毫秒）"
+                              format: "int64"
+                            occurTime:
+                              type: "integer"
+                              description: "发生时间（epoch 毫秒，用于范围检索与排序）"
+                              format: "int64"
+                            occurTimeText:
+                              type: "string"
+                              description: "发生时间（ISO-8601，便于展示）"
+                          description: "统一操作日志文档（ES 索引 operation_log）。\n<p>\n记录来源：\
+                            登录/登出、全局错误、统一 HTTP 写操作拦截器；由事件监听器异步写入。"
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      page:
+                        type: "integer"
+                        description: "当前页码（从 1 开始）"
+                        format: "int64"
+                      size:
+                        type: "integer"
+                        description: "每页大小"
+                        format: "int64"
+                    description: ""
+  /api/v4/admin/logs/stats:
+    get:
+      summary: "日志类型统计"
+      description: "日志类型统计"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      key:
+                        type: "integer"
+                    description: ""
+  /api/v4/admin/logs/cleanup:
+    delete:
+      summary: "清理过期日志"
+      description: "清理过期日志"
+      parameters:
+      - name: "days"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "90"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "integer"
+                    description: ""
+                    format: "int64"
   /api/v2/branch/list:
     get:
       summary: "支部列表"
@@ -3468,43 +3665,592 @@ paths:
                   data:
                     type: "string"
                     description: ""
+  /api/v2/content/news/page:
+    get:
+      summary: "新闻列表"
+      description: "新闻列表"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "1"
+      - name: "size"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "10"
+      - name: "keyword"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "type"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      records:
+                        type: "array"
+                        description: "当前页数据"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: "新闻ID（主键，自增）"
+                              format: "int64"
+                            author:
+                              type: "integer"
+                              description: "作者（关联 tb_user.id）"
+                              format: "int64"
+                            title:
+                              type: "string"
+                              description: "标题"
+                            cover:
+                              type: "string"
+                              description: "封面"
+                            type:
+                              type: "string"
+                              description: "类型"
+                            status:
+                              type: "integer"
+                              description: "状态（1、2）"
+                            content:
+                              type: "string"
+                              description: "正文"
+                            viewCount:
+                              type: "integer"
+                              description: "浏览量"
+                            createTime:
+                              type: "string"
+                              description: "创建时间"
+                            updateTime:
+                              type: "string"
+                              description: "修改时间"
+                          description: "新闻实体\n对应数据库表：tb_news"
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      page:
+                        type: "integer"
+                        description: "当前页码（从 1 开始）"
+                        format: "int64"
+                      size:
+                        type: "integer"
+                        description: "每页大小"
+                        format: "int64"
+                    description: ""
+  /api/v2/content/news/{id}:
+    get:
+      summary: "新闻详情"
+      description: "新闻详情"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        description: "新闻ID（主键，自增）"
+                        format: "int64"
+                      author:
+                        type: "integer"
+                        description: "作者（关联 tb_user.id）"
+                        format: "int64"
+                      title:
+                        type: "string"
+                        description: "标题"
+                      cover:
+                        type: "string"
+                        description: "封面"
+                      type:
+                        type: "string"
+                        description: "类型"
+                      status:
+                        type: "integer"
+                        description: "状态（1、2）"
+                      content:
+                        type: "string"
+                        description: "正文"
+                      viewCount:
+                        type: "integer"
+                        description: "浏览量"
+                      createTime:
+                        type: "string"
+                        description: "创建时间"
+                      updateTime:
+                        type: "string"
+                        description: "修改时间"
+                    description: ""
+  /api/v2/content/notices/page:
+    get:
+      summary: "公告列表"
+      description: "公告列表"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "1"
+      - name: "size"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "10"
+      - name: "keyword"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      records:
+                        type: "array"
+                        description: "当前页数据"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: "公告ID（主键，自增）"
+                              format: "int64"
+                            title:
+                              type: "string"
+                              description: "标题"
+                            content:
+                              type: "string"
+                              description: "内容（以 file: 开头时识别为文件）"
+                            status:
+                              type: "integer"
+                              description: "状态\n1：正常\n2：已经删除\n3：延期展示"
+                            publisherId:
+                              type: "integer"
+                              description: "发布者的id（0 为系统发布）"
+                              format: "int64"
+                            publishTime:
+                              type: "string"
+                              description: "发布时间"
+                            updateTime:
+                              type: "string"
+                              description: "修改时间"
+                            startTime:
+                              type: "string"
+                              description: "开始时间"
+                            endTime:
+                              type: "string"
+                              description: "结束时间"
+                          description: "公告表实体\n对应数据库表：tb_notice"
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      page:
+                        type: "integer"
+                        description: "当前页码（从 1 开始）"
+                        format: "int64"
+                      size:
+                        type: "integer"
+                        description: "每页大小"
+                        format: "int64"
+                    description: ""
+  /api/v2/content/notices/{id}:
+    get:
+      summary: "公告详情"
+      description: "公告详情"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        description: "公告ID（主键，自增）"
+                        format: "int64"
+                      title:
+                        type: "string"
+                        description: "标题"
+                      content:
+                        type: "string"
+                        description: "内容（以 file: 开头时识别为文件）"
+                      status:
+                        type: "integer"
+                        description: "状态\n1：正常\n2：已经删除\n3：延期展示"
+                      publisherId:
+                        type: "integer"
+                        description: "发布者的id（0 为系统发布）"
+                        format: "int64"
+                      publishTime:
+                        type: "string"
+                        description: "发布时间"
+                      updateTime:
+                        type: "string"
+                        description: "修改时间"
+                      startTime:
+                        type: "string"
+                        description: "开始时间"
+                      endTime:
+                        type: "string"
+                        description: "结束时间"
+                    description: ""
+  /api/v2/content/activities/page:
+    get:
+      summary: "活动列表"
+      description: "活动列表"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "1"
+      - name: "size"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "10"
+      - name: "keyword"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "branchId"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "integer"
+          nullable: false
+      - name: "type"
+        in: "query"
+        description: ""
+        required: false
+        schema:
+          type: "integer"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      records:
+                        type: "array"
+                        description: "当前页数据"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: ""
+                              format: "int64"
+                            branchId:
+                              type: "integer"
+                              description: "支部 id（可空=校级活动）"
+                              format: "int64"
+                            branchName:
+                              type: "string"
+                              description: ""
+                            title:
+                              type: "string"
+                              description: ""
+                            description:
+                              type: "string"
+                              description: ""
+                            type:
+                              type: "integer"
+                              description: "活动类型 id（关联 tb_activity_type.id，可空）"
+                            typeName:
+                              type: "string"
+                              description: ""
+                            cover:
+                              type: "string"
+                              description: ""
+                            startTime:
+                              type: "string"
+                              description: ""
+                            endTime:
+                              type: "string"
+                              description: ""
+                            location:
+                              type: "string"
+                              description: "地点 WKT（polygon，null 表示线上活动）"
+                            locationDescription:
+                              type: "string"
+                              description: ""
+                            signStart:
+                              type: "string"
+                              description: ""
+                            signEnd:
+                              type: "string"
+                              description: ""
+                            maxParticipants:
+                              type: "integer"
+                              description: ""
+                            status:
+                              type: "integer"
+                              description: "活动状态（tb_activity_detail.status：0/1/2）"
+                            creatorId:
+                              type: "integer"
+                              description: ""
+                              format: "int64"
+                            createTime:
+                              type: "string"
+                              description: ""
+                            updateTime:
+                              type: "string"
+                              description: ""
+                          description: "活动管理-列表/详情 VO（tb_activity + tb_activity_detail\
+                            \ + 支部/类型名称）"
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      page:
+                        type: "integer"
+                        description: "当前页码（从 1 开始）"
+                        format: "int64"
+                      size:
+                        type: "integer"
+                        description: "每页大小"
+                        format: "int64"
+                    description: ""
+  /api/v2/content/activities/{id}:
+    get:
+      summary: "活动详情"
+      description: "活动详情"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        description: ""
+                        format: "int64"
+                      branchId:
+                        type: "integer"
+                        description: "支部 id（可空=校级活动）"
+                        format: "int64"
+                      branchName:
+                        type: "string"
+                        description: ""
+                      title:
+                        type: "string"
+                        description: ""
+                      description:
+                        type: "string"
+                        description: ""
+                      type:
+                        type: "integer"
+                        description: "活动类型 id（关联 tb_activity_type.id，可空）"
+                      typeName:
+                        type: "string"
+                        description: ""
+                      cover:
+                        type: "string"
+                        description: ""
+                      startTime:
+                        type: "string"
+                        description: ""
+                      endTime:
+                        type: "string"
+                        description: ""
+                      location:
+                        type: "string"
+                        description: "地点 WKT（polygon，null 表示线上活动）"
+                      locationDescription:
+                        type: "string"
+                        description: ""
+                      signStart:
+                        type: "string"
+                        description: ""
+                      signEnd:
+                        type: "string"
+                        description: ""
+                      maxParticipants:
+                        type: "integer"
+                        description: ""
+                      status:
+                        type: "integer"
+                        description: "活动状态（tb_activity_detail.status：0/1/2）"
+                      creatorId:
+                        type: "integer"
+                        description: ""
+                        format: "int64"
+                      createTime:
+                        type: "string"
+                        description: ""
+                      updateTime:
+                        type: "string"
+                        description: ""
+                    description: ""
+  /api/v2/content/activity-types:
+    get:
+      summary: "活动类型列表"
+      description: "活动类型列表"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "array"
+                    description: ""
+                    items:
+                      type: "object"
+                      properties:
+                        id:
+                          type: "integer"
+                          description: "类型ID（主键，自增）"
+                          format: "int64"
+                        name:
+                          type: "string"
+                          description: "类型名称"
+                        needSign:
+                          type: "integer"
+                          description: "是否需要签到（1：需要，0：不需要）"
+                        countToFile:
+                          type: "integer"
+                          description: "是否计入档案（1：计入，0：不计入）"
+                      description: "活动类型实体\n对应数据库表：tb_activity_type"
 components:
   schemas:
-    sicau.policialPartyManager.api.dto.MenuVo:
-      type: "object"
-      properties:
-        name:
-          type: "string"
-          description: ""
-        path:
-          type: "string"
-          description: ""
-        icon:
-          type: "string"
-          description: ""
-        children:
-          type: "array"
-          description: ""
-          items:
-            type: "object"
-            properties:
-              name:
-                type: "string"
-                description: ""
-              path:
-                type: "string"
-                description: ""
-              icon:
-                type: "string"
-                description: ""
-              children:
-                type: "array"
-                description: ""
-                items:
-                  type: "object"
-                  properties: {}
-            description: "sicau.policialPartyManager.api.dto.MenuVo"
-      description: "sicau.policialPartyManager.api.dto.MenuVo"
     sicau.policialPartyManager.api.dto.LoginResponse:
       type: "object"
       properties:
@@ -3530,44 +4276,6 @@ components:
         branchName:
           type: "string"
           description: ""
-        menus:
-          type: "array"
-          description: ""
-          items:
-            type: "object"
-            properties:
-              name:
-                type: "string"
-                description: ""
-              path:
-                type: "string"
-                description: ""
-              icon:
-                type: "string"
-                description: ""
-              children:
-                type: "array"
-                description: ""
-                items:
-                  type: "object"
-                  properties:
-                    name:
-                      type: "string"
-                      description: ""
-                    path:
-                      type: "string"
-                      description: ""
-                    icon:
-                      type: "string"
-                      description: ""
-                    children:
-                      type: "array"
-                      description: ""
-                      items:
-                        type: "object"
-                        properties: {}
-                  description: "sicau.policialPartyManager.api.dto.MenuVo"
-            description: "sicau.policialPartyManager.api.dto.MenuVo"
       description: ""
     用户管理-列表/详情 VO（tb_user + tb_user_detail + 角色/支部信息）:
       type: "object"
@@ -3594,6 +4302,27 @@ components:
         identityCardNumber:
           type: "string"
           description: ""
+        gender:
+          type: "string"
+          description: "性别"
+        college:
+          type: "string"
+          description: "学院"
+        grade:
+          type: "string"
+          description: "年级"
+        major:
+          type: "string"
+          description: "专业"
+        className:
+          type: "string"
+          description: "班级"
+        contactPerson:
+          type: "string"
+          description: "紧急联系人"
+        remark:
+          type: "string"
+          description: "备注"
         branchId:
           type: "integer"
           description: "所属支部 id"
@@ -3859,3 +4588,66 @@ components:
           type: "string"
           description: "结束时间"
       description: ""
+    ? "统一操作日志文档（ES 索引 operation_log）。\n<p>\n记录来源：登录/登出、全局错误、统一 HTTP 写操作拦截器；由事件监听器异\
+      步写入。"
+    : type: "object"
+      properties:
+        id:
+          type: "string"
+          description: "主键（UUID）"
+        logType:
+          type: "string"
+          description: "日志类型：LOGIN / LOGOUT / ERROR / OPERATION"
+        module:
+          type: "string"
+          description: "业务模块（如 用户管理 / 认证 / 活动管理）"
+        action:
+          type: "string"
+          description: "动作描述（如 新增 / 编辑 / 批量导入 / 登录成功）"
+        method:
+          type: "string"
+          description: "HTTP 方法（GET/POST/...，非请求类日志为空）"
+        path:
+          type: "string"
+          description: "请求路径"
+        operatorId:
+          type: "integer"
+          description: "操作者 id（登录前为空）"
+          format: "int64"
+        operatorName:
+          type: "string"
+          description: "操作者（登录前用账号名/邮箱/手机号）"
+        role:
+          type: "string"
+          description: "操作者角色编码"
+        ipAddress:
+          type: "string"
+          description: "客户端 IP"
+        userAgent:
+          type: "string"
+          description: "User-Agent"
+        success:
+          type: "boolean"
+          description: "是否成功"
+        resultCode:
+          type: "integer"
+          description: "HTTP 状态码或业务码（错误日志必填）"
+        errorType:
+          type: "string"
+          description: "异常类型（ERROR 日志）"
+        message:
+          type: "string"
+          description: "详细说明/错误信息"
+        durationMs:
+          type: "integer"
+          description: "耗时（毫秒）"
+          format: "int64"
+        occurTime:
+          type: "integer"
+          description: "发生时间（epoch 毫秒，用于范围检索与排序）"
+          format: "int64"
+        occurTimeText:
+          type: "string"
+          description: "发生时间（ISO-8601，便于展示）"
+      description: "统一操作日志文档（ES 索引 operation_log）。\n<p>\n记录来源：登录/登出、全局错误、统一 HTTP 写\
+        操作拦截器；由事件监听器异步写入。"

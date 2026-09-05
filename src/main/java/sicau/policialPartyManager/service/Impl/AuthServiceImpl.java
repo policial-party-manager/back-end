@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import sicau.policialPartyManager.api.dto.LoginRequest;
 import sicau.policialPartyManager.api.dto.LoginResponse;
-import sicau.policialPartyManager.api.dto.MenuVo;
 import sicau.policialPartyManager.model.entity.*;
 import sicau.policialPartyManager.repository.*;
 import sicau.policialPartyManager.utils.CodeUtil;
@@ -23,7 +22,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.HexFormat;
-import java.util.List;
 
 /**
  * 认证服务实现：用户名密码 / 邮箱验证码 / 手机号验证码登录，
@@ -176,6 +174,17 @@ public class AuthServiceImpl implements AuthService {
         // access token 为无状态 JWT，不做服务端黑名单，由前端丢弃即可，到期自然失效
     }
 
+    /** 按本地用户 id 直接签发登录态（CAS 等外部认证成功后调用） */
+    @Override
+    public LoginResponse loginByUserId(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        ensureEnabled(user);
+        return buildLoginResponse(user);
+    }
+
     /**
      * 通过 tb_user_role + tb_role 获取用户角色编码并规范化：
      * 兼容库中可能存储的 "ROLE_SUPER_ADMIN" / "ROLE_super_admin" / "super_admin" 等写法，
@@ -190,27 +199,6 @@ public class AuthServiceImpl implements AuthService {
         }
         Role role = roleMapper.selectById(userRole.getRoleId());
         return role == null ? ROLE_STUDENT : normalizeRole(role.getRoleName());
-    }
-
-    @Override
-    public List<MenuVo> buildMenus(String role) {
-        return switch (role) {
-            case "super_admin" -> List.of(
-                    MenuVo.builder().name("首页仪表盘").path("/dashboard").icon("HomeFilled").build(),
-                    MenuVo.builder().name("成员管理").path("/members").icon("UserFilled").build(),
-                    MenuVo.builder().name("党支部管理").path("/branches").icon("OfficeBuilding").build(),
-                    MenuVo.builder().name("个人中心").path("/profile").icon("Setting").build()
-            );
-            case "branch_admin" -> List.of(
-                    MenuVo.builder().name("首页仪表盘").path("/dashboard").icon("HomeFilled").build(),
-                    MenuVo.builder().name("成员管理").path("/members").icon("UserFilled").build(),
-                    MenuVo.builder().name("个人中心").path("/profile").icon("Setting").build()
-            );
-            default -> List.of(
-                    MenuVo.builder().name("首页").path("/dashboard").icon("HomeFilled").build(),
-                    MenuVo.builder().name("个人中心").path("/profile").icon("Setting").build()
-            );
-        };
     }
 
     // ======================= 私有辅助方法 =======================
@@ -246,7 +234,6 @@ public class AuthServiceImpl implements AuthService {
                 .role(role)
                 .branchId(branchId)
                 .branchName(branchName)
-                .menus(buildMenus(role))
                 .build();
     }
 

@@ -41,6 +41,27 @@ public class UserSaveRequest {
 
     private String identityCardNumber;
 
+    /** 性别 */
+    private String gender;
+
+    /** 学院 */
+    private String college;
+
+    /** 年级 */
+    private String grade;
+
+    /** 专业 */
+    private String major;
+
+    /** 班级 */
+    private String className;
+
+    /** 紧急联系人 */
+    private String contactPerson;
+
+    /** 备注 */
+    private String remark;
+
     /** 所属支部 id（可空） */
     private Long branchId;
 

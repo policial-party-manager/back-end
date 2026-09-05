@@ -50,4 +50,39 @@ public class UserDetail {
      * 身份证号
      */
     private String identityCardNumber;
+
+    /**
+     * 性别（可空：男/女/其他等）
+     */
+    private String gender;
+
+    /**
+     * 学院
+     */
+    private String college;
+
+    /**
+     * 年级（如 2023）
+     */
+    private String grade;
+
+    /**
+     * 专业
+     */
+    private String major;
+
+    /**
+     * 班级
+     */
+    private String className;
+
+    /**
+     * 紧急联系人
+     */
+    private String contactPerson;
+
+    /**
+     * 备注
+     */
+    private String remark;
 }

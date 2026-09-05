@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.util.StringUtils;
 
 /**
- * 线程级请求上下文：由 {@link OperationLogInterceptor} 在请求进入时填充客户端 IP / UA，
+ * 线程级请求上下文：由 {@link OperationLogFilter} 在请求进入时填充客户端 IP / UA，
  * 供登录等无请求对象的业务点组装日志，请求结束后清理。
  */
 public final class RequestContext {
