@@ -21,6 +21,15 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+  # Elasticsearch（统一操作日志）。未配置/不可达时不阻塞启动，写入自动降级到应用日志。
+  elasticsearch:
+    uris: ${ES_URIS:http://localhost:9200}
+    connection-timeout: 3s
+    socket-timeout: 10s
+    username: ${ES_USERNAME:}
+    password: ${ES_PASSWORD:}
 
   # 邮件（验证码发送）。
   # 未配置 host 时不会创建 JavaMailSender，验证码将降级打印到日志（便于本地开发/联调）。
@@ -44,6 +53,7 @@ spring:
   profiles:
     include: secret
 
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
@@ -62,6 +72,22 @@ jwt:
   access-token-expiration: 7200000
   # 刷新令牌有效期：7 天（毫秒）
   refresh-token-expiration: 604800000
+
+# 学校 CAS 统一身份认证（SSO 登录）
+# 未配置时启动不受影响，登录接口会提示“CAS 未配置”
+cas:
+  # 例：http://sso.sicau.edu.cn/cas/
+  server-url: ${CAS_SERVER_URL:}
+  client-name: ${CAS_CLIENT_NAME:casClient}
+  # 回调地址需为后端可被 CAS 访问的完整地址，例：http://127.0.0.1:8080/api/v1/auth/sso/callback
+  callback-url: ${CAS_CALLBACK_URL:}
+  app-id: ${CAS_APP_ID:}
+
+# 前端地址（SSO 回跳落地）
+frontend:
+  base-url: ${FRONTEND_BASE_URL:}
+  # 落地页路由，如 /sso/login
+  sso-landing-path: ${FRONTEND_SSO_LANDING_PATH:/sso/login}
 
 server:
   port: 8080

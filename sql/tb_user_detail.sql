@@ -8,6 +8,13 @@ create table tb_user_detail
     name                 varchar(12) not null comment '学生姓名',
     email                varchar(25) null comment '邮箱',
     identity_card_number varchar(18) null comment '身份证号',
+    gender               varchar(10) null comment '性别',
+    college              varchar(50) null comment '学院',
+    grade                varchar(10) null comment '年级',
+    major                varchar(50) null comment '专业',
+    class_name           varchar(50) null comment '班级',
+    contact_person       varchar(50) null comment '紧急联系人',
+    remark               varchar(500) null comment '备注',
     constraint tb_user_detail_email_uindex
         unique (email),
     constraint tb_user_detail_email_user_id_uindex

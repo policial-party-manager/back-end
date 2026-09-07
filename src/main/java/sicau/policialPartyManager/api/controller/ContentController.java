@@ -13,14 +13,24 @@ import sicau.policialPartyManager.model.entity.Notice;
 import sicau.policialPartyManager.repository.ActivityMapper;
 import sicau.policialPartyManager.repository.NewsMapper;
 import sicau.policialPartyManager.repository.NoticeMapper;
+import sicau.policialPartyManager.api.dto.ActivityVo;
+import sicau.policialPartyManager.api.dto.PageResult;
+import sicau.policialPartyManager.api.dto.Result;
+import sicau.policialPartyManager.model.entity.ActivityType;
+import sicau.policialPartyManager.model.entity.News;
+import sicau.policialPartyManager.model.entity.Notice;
+import sicau.policialPartyManager.service.ContentService;
 
 import java.util.List;
 
 /**
  * 内容公开接口（普通成员可访问）
  * 新闻、活动、公告的公开查询
+ *
+ * 内容服务：新闻/公告/活动的查询（列表与详情）。登录即可访问，权限宽泛；
+ * 只返回“已发布/在展示期”的公开内容，管理后台的写操作仍在 AdminController。
  */
-@Tag(name = "内容", description = "新闻、活动、通知的公开查询接口")
+@Tag(name = "内容", description = "新闻、公告、活动的公开查询（登录即可）")
 @RestController
 @RequestMapping("/api/v2/content")
 @RequiredArgsConstructor

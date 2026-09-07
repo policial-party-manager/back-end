@@ -16,5 +16,4 @@ public class LoginResponse {
     private String role;
     private Long branchId;
     private String branchName;
-    private List<MenuVo> menus;
 }
