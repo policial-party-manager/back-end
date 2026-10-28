@@ -77,7 +77,7 @@ erDiagram
 ### `tb_branch`
 
 - `secretary_id` 指向 `tb_user.id`，书记是用户而非单独实体
-- `status`：`1` 正常 / `0` 已删除（软删除）。**注意** 历史 SQL 注释写的是「是否删除」，与代码语义相反，以代码为准
+- `status`：`1` 正常 / `0` 已删除（软删除），DDL 默认值同为 `1`。全项目统一约定见 README「软删除」节
 
 ### `tb_activity` / `tb_activity_detail`
 
