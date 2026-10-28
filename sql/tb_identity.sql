@@ -10,6 +10,3 @@ create table tb_identity
         foreign key (role_id) references tb_role (id)
 )
     comment '政治身份';
-
-�身份';
-

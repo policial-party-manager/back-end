@@ -9,6 +9,3 @@ create table tb_study
 
 create index tb_study_type_index
     on tb_study (type);
-
- (type);
-

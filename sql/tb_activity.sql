@@ -20,6 +20,3 @@ url: 开头为网络图片',
             on delete cascade
 )
     comment '活动表';
-
-omment '活动表';
-

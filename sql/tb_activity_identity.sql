@@ -12,6 +12,3 @@ create table tb_activity_identity
         foreign key (target_identity) references tb_identity (id)
 )
     comment '活动目标身份';
-
-标身份';
-

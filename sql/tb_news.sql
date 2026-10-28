@@ -20,6 +20,3 @@ create table tb_news
 
 create index tb_news_author_index
     on tb_news (author);
-
-n tb_news (author);
-

@@ -32,4 +32,3 @@ create table tb_user_detail
             on delete cascade
 )
     comment '用户详情';
-

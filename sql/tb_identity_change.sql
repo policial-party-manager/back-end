@@ -19,6 +19,3 @@ create table tb_identity_change
 
 create index tb_identity_change_operator_id_index
     on tb_identity_change (operator_id);
-
-ty_change (operator_id);
-

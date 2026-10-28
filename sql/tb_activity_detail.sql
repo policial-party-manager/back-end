@@ -18,4 +18,3 @@ create table tb_activity_detail
         check (`status` in (0, 1, 2))
 )
     comment '活动详情';
-

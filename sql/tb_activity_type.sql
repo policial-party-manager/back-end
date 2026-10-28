@@ -7,6 +7,3 @@ create table tb_activity_type
     count_to_file tinyint(1) default 1 not null comment '是否计入档案'
 )
     comment '活动类型';
-
-�型';
-
