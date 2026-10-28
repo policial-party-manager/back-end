@@ -15,6 +15,3 @@ create table tb_sign_record
         foreign key (user_id) references tb_user (id)
 )
     comment '签到记录';
-
-签到记录';
-

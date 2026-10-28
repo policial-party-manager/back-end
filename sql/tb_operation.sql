@@ -12,6 +12,3 @@ create table tb_operation
         foreign key (operator_id) references tb_user (id)
 )
     comment '操作日志';
-
-作日志';
-

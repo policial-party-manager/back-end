@@ -131,6 +131,8 @@ dj/
 mysql -u root -p < sql/databases.sql
 ```
 
+> 该脚本按外键依赖顺序创建 20 张表。改过任何 `sql/tb_*.sql` 后，执行 `./sql/schema-verify.sh` 可验证整套 DDL 仍能干净建库（它会 DROP 并重建临时库 `pp_schema_verify`，不会碰业务库）。
+
 ### 3. 修改配置
 
 编辑 `src/main/resources/application.yaml`：

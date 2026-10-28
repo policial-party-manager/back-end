@@ -16,4 +16,3 @@ create table tb_branch
 
 create index tb_branch_college_index
     on tb_branch (college);
-

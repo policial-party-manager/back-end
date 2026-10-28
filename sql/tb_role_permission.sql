@@ -11,6 +11,3 @@ create table tb_role_permission
             on delete cascade
 )
     comment '角色权限关联表';
-
-��联表';
-

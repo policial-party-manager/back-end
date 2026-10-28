@@ -23,6 +23,3 @@ create index tb_thought_report_reviewer_id_index
 
 create index tb_thought_report_user_id_index
     on tb_thought_report (user_id);
-
-ught_report (user_id);
-

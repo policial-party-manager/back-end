@@ -14,6 +14,3 @@ create table tb_user_role
             on delete cascade
 )
     comment '用户角色关联表';
-
-��关联表';
-

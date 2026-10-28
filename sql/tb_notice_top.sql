@@ -12,6 +12,3 @@ create table tb_notice_top
             on update set default on delete set default
 )
     comment '公告置顶消息';
-
-顶消息';
-
