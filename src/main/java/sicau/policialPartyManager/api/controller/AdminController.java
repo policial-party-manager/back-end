@@ -94,7 +94,7 @@ public class AdminController {
         return Result.ok();
     }
 
-    @Operation(summary = "下载用户导入模板", description = "列：学号、姓名、手机号、邮箱、所属支部、角色")
+    @Operation(summary = "下载用户导入模板", description = "列：学号、姓名、手机号、邮箱、所属支部、角色（前 6 列必填）；性别、学院、年级、专业、班级、紧急联系人、备注（后 7 列选填）")
     @GetMapping("/users/template")
     public void downloadUserTemplate(HttpServletResponse response) throws IOException {
         writeXlsx(response, adminUserService.template(), "用户导入模板.xlsx");
@@ -151,7 +151,7 @@ public class AdminController {
         return Result.ok(adminBranchService.listBranchOptions());
     }
 
-    @Operation(summary = "下载支部导入模板", description = "列：支部名称、所属学院、简介")
+    @Operation(summary = "下载支部导入模板", description = "列：支部名称、所属学院、简介、书记用户id（4 列，除简介外均必填；书记用户id 填 tb_user.id）")
     @GetMapping("/branches/template")
     public void downloadBranchTemplate(HttpServletResponse response) throws IOException {
         writeXlsx(response, adminBranchService.template(), "党支部导入模板.xlsx");
