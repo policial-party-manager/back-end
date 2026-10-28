@@ -54,7 +54,7 @@ public class Branch {
     private LocalDateTime updateTime;
 
     /**
-     * 是否删除（0：未删除，1：已删除）
+     * 状态（1：正常，0：已删除）
      */
     private Integer status;
 }

@@ -58,6 +58,32 @@ for f in "$SQL_DIR"/tb_*.sql; do
   case " $ORDER " in *" $t "*) ;; *) echo "UNLISTED $t"; fail=$((fail + 1)) ;; esac
 done
 
+# --- 语义自检：软删除状态列必须默认「正常」 ---
+# 依据：BranchServiceImpl.save() 不显式写 status，完全依赖 DDL 默认值；
+#       AdminBranchServiceImpl / BranchServiceImpl 一律用 status=1 表示正常、0 表示已删除。
+#       若默认值退化成 0，新建的支部会立刻被列表当成「已删除」。
+echo "== 语义自检 =="
+# 注意 tb_user.username 是 varchar(10)，自检用名必须短于此
+mysql_run "$DB" -e "INSERT INTO tb_user (username, password, update_time) VALUES ('vfy_user','x',NOW());" 2>/dev/null
+verify_user=$(mysql_run -N "$DB" -e "SELECT id FROM tb_user WHERE username='vfy_user' LIMIT 1;")
+if [ -z "$verify_user" ]; then
+  echo "FAILED   tb_branch.status 自检：无法插入测试用户，跳过（不影响 DDL 结论）"
+else
+  # 故意不写 status，复现 BranchServiceImpl.save() 的写法
+  if mysql_run "$DB" -e "INSERT INTO tb_branch (branch_name, college, secretary_id) VALUES ('__verify_branch__','验证',$verify_user);" 2>/dev/null; then
+    status=$(mysql_run -N "$DB" -e "SELECT status FROM tb_branch WHERE branch_name='__verify_branch__';")
+    if [ "$status" = "1" ]; then
+      echo "OK       tb_branch.status 未显式赋值时默认 1（正常）"
+    else
+      echo "FAILED   tb_branch.status 未显式赋值时得到 ${status:-空}（应为 1；默认 0 会让新支部立刻变成'已删除'）"
+      fail=$((fail + 1))
+    fi
+  else
+    echo "FAILED   tb_branch.status 自检：测试支部插入失败"
+    fail=$((fail + 1))
+  fi
+fi
+
 created=$(mysql_run -N -e "select count(*) from information_schema.tables where table_schema='$DB';")
 expected=$(printf '%s\n' $ORDER | wc -l | tr -d ' ')
 echo "== 建表结果：$created 张（期望 $expected），失败 $fail 项 =="

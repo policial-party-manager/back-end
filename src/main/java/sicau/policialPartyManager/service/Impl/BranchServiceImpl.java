@@ -28,6 +28,10 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     public void save(Branch branch) {
+        // 不依赖 DDL 默认值：status 语义为 1 = 正常 / 0 = 已删除，缺省按正常处理
+        if (branch.getStatus() == null) {
+            branch.setStatus(1);
+        }
         branchMapper.insert(branch);
     }
 
