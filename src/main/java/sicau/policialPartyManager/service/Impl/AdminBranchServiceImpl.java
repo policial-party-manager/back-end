@@ -16,6 +16,7 @@ import sicau.policialPartyManager.utils.ExcelUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 党支部管理（后台）：分页搜索、增删改查、Excel 批量导入。
@@ -24,9 +25,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminBranchServiceImpl implements AdminBranchService {
 
-    private static final String[] IMPORT_HEADERS = {"支部名称", "所属学院", "简介"};
+    private static final String[] IMPORT_HEADERS = {"支部名称", "所属学院", "简介", "书记用户id"};
     private static final String[][] IMPORT_EXAMPLE = {
-            {"第一党支部", "信息工程学院", "示例：负责学院党员日常管理与活动组织"}
+            {"第一党支部", "信息工程学院", "示例：负责学院党员日常管理与活动组织", "1"}
     };
 
     private final BranchMapper branchMapper;
@@ -58,6 +59,9 @@ public class AdminBranchServiceImpl implements AdminBranchService {
         String name = branch.getBranchName();
         if (!StringUtils.hasText(name)) {
             throw new IllegalArgumentException("支部名称不能为空");
+        }
+        if (branch.getSecretaryId() == null) {
+            throw new IllegalArgumentException("书记用户id不能为空");
         }
         checkNameFree(name.trim(), null);
         branch.setId(null);
@@ -123,11 +127,15 @@ public class AdminBranchServiceImpl implements AdminBranchService {
                 if (!StringUtils.hasText(name)) {
                     throw new IllegalArgumentException("支部名称不能为空");
                 }
+                if (cellOrNull(row, 3) == null) {
+                    throw new IllegalArgumentException("书记用户id不能为空");
+                }
                 checkNameFree(name.trim(), null);
                 Branch branch = new Branch();
                 branch.setBranchName(name.trim());
                 branch.setCollege(cellOrNull(row, 1));
                 branch.setDescription(cellOrNull(row, 2));
+                branch.setSecretaryId(Long.parseLong(cellOrNull(row, 3)));
                 branch.setStatus(1);
                 branchMapper.insert(branch);
                 success++;
