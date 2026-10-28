@@ -47,8 +47,7 @@ dj/
 │   │   │   ├── UserController.java      # /api/v4/user/*    个人中心
 │   │   │   ├── BranchController.java    # /api/v2/branch/*  党支部管理
 │   │   │   ├── AdminController.java     # /api/v4/admin/*   管理员后台（用户/支部/角色/活动/新闻/公告/日志）
-│   │   │   ├── ContentController.java   # /api/v2/content/* 内容公开查询（新闻/公告/活动）
-│   │   │   └── HistoryController.java  # /api/v4/history/* 历史记录（操作日志）
+│   │   │   └── ContentController.java   # /api/v2/content/* 内容公开查询（新闻/公告/活动）
 │   │   └── dto/
 │   │       ├── LoginRequest.java        # 登录请求（多模式复用）
 │   │       ├── LoginResponse.java       # 登录响应（含 token、菜单）
@@ -339,9 +338,9 @@ Authorization: Bearer <token>
 | GET | `/api/v4/admin/logs/stats` | 日志类型统计 |
 | DELETE | `/api/v4/admin/logs/cleanup` | 清理过期日志 |
 
-### 历史记录 `[/api/v4/history]` · 仅 SUPER_ADMIN
+### 历史记录
 
-> 暂未实现。
+> 历史记录即操作日志，统一走上一节的 `/api/v4/admin/logs/*`，不再提供独立的 `/api/v4/history` 入口（原空壳控制器已删除，避免同一份数据出现两套契约）。
 
 ---
 
