@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -24,7 +25,7 @@ import sicau.policialPartyManager.log.OperationLogPublisher;
  * 全局异常处理：
  * <ul>
  *   <li>参数/表单校验异常（@NotBlank/@Pattern/@Valid 等）统一返回 400 与首个校验错误信息</li>
- *   <li>业务异常 IllegalArgumentException 返回 400；基础设施异常 IllegalStateException 返回 500 与原信息</li>
+ *   <li>业务异常 IllegalArgumentException 返回 400；鉴权拒绝 AccessDeniedException 返回 403（#63）；基础设施异常 IllegalStateException 返回 500 与原信息</li>
  *   <li>错误统一发布 ERROR 日志事件（登录相关路径由登录事件记录，避免重复；日志查询接口自身不记录）</li>
  *   <li>其余异常记录日志并返回 500</li>
  * </ul>
@@ -116,6 +117,21 @@ public class GlobalExceptionHandler {
     public Result<?> handleIllegalArgument(IllegalArgumentException e, HttpServletRequest request) {
         publishError(request, e, HttpStatus.BAD_REQUEST.value(), e.getMessage());
         return Result.fail(e.getMessage());
+    }
+
+    /**
+     * 鉴权拒绝：403 + 统一响应体（#63）。
+     * <p>
+     * 没有这个分支时它会掉进下面的 catch-all 变 500「服务器内部错误」——
+     * 前端无法区分「没权限」与「真故障」，ERROR 日志也被谎报污染。
+     * 匿名请求（未登录被方法级拦截器重抛为 AccessDenied）同样落到这里。
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Result<?> handleAccessDenied(AccessDeniedException e, HttpServletRequest request) {
+        String message = "无权访问该接口";
+        publishError(request, e, HttpStatus.FORBIDDEN.value(), message);
+        return Result.fail(403, message);
     }
 
     /** 基础设施不可用（如 Elasticsearch 日志服务）等，返回 500 与原信息便于排查 */

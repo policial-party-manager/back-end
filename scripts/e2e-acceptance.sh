@@ -8,7 +8,7 @@
 #
 # 覆盖工单: #53 报名 #35 签到 #44 身份体系 #61 身份维度报名 #33 思想汇报
 #           #32 学习 #36 DTO 化（越权收紧）
-# 已知: @PreAuthorize 拒绝今天返回 500（修复见 #63），本脚本按现状断言。
+# 已知: @PreAuthorize 拒绝曾返回 500，#63 修复后为 403，本脚本断言 403。
 # 用法: 应用需在 :8080 运行（mvn spring-boot:run）；superadmin 密码为默认 123456。
 #       请求载荷保持 ASCII（Windows 代码页安全）；中文断言匹配响应字节。
 set -uo pipefail
@@ -131,7 +131,7 @@ CHG=$(api "$T_SEC" POST /api/v4/identity-changes "{\"userId\":$STU_ID,\"toIdenti
 CHG_ID=$(printf '%s' "$CHG" | g data.id)
 [ "$(printf '%s' "$CHG" | g data.status)" = "1" ] && ok "sec applied, pending" || bad apply "$CHG"
 SA=$(api "$T_SEC" POST "/api/v4/identity-changes/$CHG_ID/review" '{"pass":true}')
-{ printf '%s' "$SA" | grep -q "超级管理员" || [ "$(stcode "$T_SEC" POST "/api/v4/identity-changes/$CHG_ID/review" '{"pass":true}')" = "500" ]; } && ok "sec self-approve denied (msg or 500/#63)" || bad "self-approve" "$SA"
+[ "$(stcode "$T_SEC" POST "/api/v4/identity-changes/$CHG_ID/review" '{"pass":true}')" = "403" ] && ok "sec self-approve denied 403 (#63 fixed)" || bad "self-approve" "$SA"
 APV=$(api "$T_SUPER" POST "/api/v4/identity-changes/$CHG_ID/review" '{"pass":true,"remark":"E2E approved"}')
 [ "$(printf '%s' "$APV" | g data.status)" = "2" ] && ok "super approved status=2" || bad approve "$APV"
 printf '%s' "$(api "$T_STU" GET /api/v4/user/profile)" | grep -q "预备党员" && ok "profile identity written back (#36/#44)" || bad profile "?"
@@ -155,9 +155,9 @@ api "$T_SEC" POST /api/v4/admin/study-records "{\"userId\":$STU_ID,\"courseId\":
 SUM=$(api "$T_STU" GET /api/v4/user/study-records/mine/summary)
 [ "$(printf '%s' "$SUM" | g data.recordCount)" = "1" ] && [ "$(printf '%s' "$SUM" | g data.totalMinutes)" = "180" ] && ok "upsert + summary 180min" || bad "upsert/summary" "$SUM"
 
-echo "== 6) authz surfaces (500 today; #63 wants 403) =="
-[ "$(stcode "$T_STU" GET /api/v4/admin/study-records/page)" = "500" ] && ok "student denied (500/#63)" || bad "student deny" "?"
-[ "$(stcode "$T_SEC" POST /api/v4/admin/study-courses '{"name":"x","type":"y"}')" = "500" ] && ok "sec denied (500/#63)" || bad "sec deny" "?"
+echo "== 6) authz surfaces (403 since #63 fix) =="
+[ "$(stcode "$T_STU" GET /api/v4/admin/study-records/page)" = "403" ] && ok "student -> admin endpoint 403" || bad "student deny" "?"
+[ "$(stcode "$T_SEC" POST /api/v4/admin/study-courses '{"name":"x","type":"y"}')" = "403" ] && ok "sec -> course create 403" || bad "sec deny" "?"
 [ "$(stcode "$T_SEC" GET /api/v4/admin/study-records/page)" = "200" ] && ok "sec managed page 200" || bad sec200 "?"
 api "$T_STU" PUT /api/v4/user/profile '{"remark":"E2E-upd","branchId":999}' >/dev/null
 [ "$(api "$T_STU" GET /api/v4/user/profile | g data.branchId)" = "$BR_ID" ] && ok "branchId escape ignored (#36)" || bad branchId "?"
