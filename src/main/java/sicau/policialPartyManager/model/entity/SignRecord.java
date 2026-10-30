@@ -1,9 +1,11 @@
 package sicau.policialPartyManager.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import sicau.policialPartyManager.repository.handler.WktPointTypeHandler;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +16,7 @@ import java.time.LocalDateTime;
  * @author sicau
  */
 @Data
-@TableName("tb_sign_record")
+@TableName(value = "tb_sign_record", autoResultMap = true)
 public class SignRecord {
 
     /**
@@ -39,22 +41,23 @@ public class SignRecord {
     private LocalDateTime signTime;
 
     /**
-     * 签到类型
+     * 签到类型（sign=本人签到，makeup=补签）
      */
     private String signType;
 
     /**
-     * 签到设备
+     * 签到设备（web/app/mini 等，可空）
      */
     private String device;
 
     /**
-     * 地点（point 空间类型，以 WKT 格式字符串存储）
+     * 地点（point 空间类型，以 WKT 字符串读写，可空）
      */
+    @TableField(typeHandler = WktPointTypeHandler.class)
     private String location;
 
     /**
-     * 备注
+     * 备注（可空）
      */
     private String remark;
 }

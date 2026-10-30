@@ -42,7 +42,7 @@
 ├── src/main/java/sicau/policialPartyManager/
 │   ├── PolicialPartyManagerApplication.java
 │   ├── api/
-│   │   ├── controller/                   # 5 个控制器（见下方 API 概览）
+│   │   ├── controller/                   # 7 个控制器（见下方 API 概览）
 │   │   ├── dto/                          # 请求/响应对象（Result、PageResult、各类 *Request/*Vo）
 │   │   └── handler/                      # GlobalExceptionHandler
 │   ├── config/                           # Security、MyBatis-Plus、Knife4j、CAS、异步、@CurrentUser
@@ -173,15 +173,16 @@ Authorization: Bearer <token>
 
 ## API 概览
 
-**完整契约以 [`openapi.yaml`](openapi.yaml) 为准**（53 条 path / 70 个 operation），`doc.html` 是它的可视化版本。README 只给出模块地图，不逐条重抄——重抄必然再次落后于代码。
+**完整契约以 [`openapi.yaml`](openapi.yaml) 为准**（55 条 path / 72 个 operation），`doc.html` 是它的可视化版本。README 只给出模块地图，不逐条重抄——重抄必然再次落后于代码。
 
 | 前缀 | 控制器 | 规模 | 鉴权 | 职责 |
 | ---- | ---- | ---- | ---- | ---- |
 | `/api/v1/auth` | `AuthController` | 8 path | **免登录** | 登录、验证码、CAS SSO、刷新、退出 |
 | `/api/v2/content` | `ContentController` | 7 path | 登录即可 | 新闻/公告/活动的只读查询，只返回已发布且在展示期内的内容 |
 | `/api/v2/branch` | `BranchController` | 3 path / 5 op | `branch_admin` | 支部增删改查；**已列入下线计划**（见下） |
-| `/api/v4/admin` | `AdminController` | 34 path / 48 op | `super_admin` | 用户、支部、角色权限、活动、新闻、公告、操作日志、Excel 导入 |
+| `/api/v4/admin` | `AdminController` + `AdminSignRecordController` | 35 path / 49 op | `super_admin` | 用户、支部、角色权限、活动、新闻、公告、签到记录、操作日志、Excel 导入 |
 | `/api/v4/user` | `UserController` | 1 path / 2 op | 登录即可 | 个人中心：查看/编辑本人资料 |
+| `/api/v4/activities` | `ActivitySignController` | 1 path / 1 op | 登录即可 | 成员对活动签到（v4 前缀下按资源独立成类） |
 
 补充说明：
 
@@ -320,7 +321,9 @@ Controller 中用 `@CurrentUser User user` 直接拿到当前登录用户（`use
 
 **尚未实现**：
 
-- [ ] `tb_sign_record` — 活动签到（报名/签到窗校验、记录查询、二维码签到）
+- [x] `tb_sign_record` — 活动签到（成员签到 + 管理员按活动查记录；location 以 WKT 落 POINT）
+- [ ] `tb_activity_signup` — 活动报名（名额校验/取消，见 #53；身份维度待 #44）
+- [ ] 二维码 / token 签到、地理围栏
 - [ ] `tb_thought_report` — 思想汇报提交与审阅流
 - [ ] `tb_study` / `tb_study_record` — 学习课程与学习记录
 - [ ] `tb_identity_change` — 政治身份变更的申请/审批链路（表已建，无业务层）
