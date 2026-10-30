@@ -81,6 +81,12 @@ erDiagram
 - `secretary_id` 指向 `tb_user.id`，书记是用户而非单独实体
 - `status`：`1` 正常 / `0` 已删除（软删除），DDL 默认值同为 `1`。全项目统一约定见 README「软删除」节
 
+### `tb_study` / `tb_study_record`
+
+- 课程字典：`name` 全表唯一（应用层 + `tb_study_name_uindex`）；`type` 自由文本（varchar(20)），不预设枚举
+- 学习记录：**一人一课一行**（`unique(user_id, course_id)`），重复录入即覆盖更新
+- `score` decimal(5,2)（0~100 支持两位小数）；`user_id` NOT NULL；`study_time` 为 time 类型（汇总按分钟计）
+
 ### `tb_activity` / `tb_activity_detail`
 
 - 1:1 拆分为主表 + 详情表：主表存标题/封面/时间/类型/支部，详情表存地点、人数上限、签到窗、状态
