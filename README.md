@@ -42,7 +42,7 @@
 ├── src/main/java/sicau/policialPartyManager/
 │   ├── PolicialPartyManagerApplication.java
 │   ├── api/
-│   │   ├── controller/                   # 9 个控制器（见下方 API 概览）
+│   │   ├── controller/                   # 13 个控制器（见下方 API 概览）
 │   │   ├── dto/                          # 请求/响应对象（Result、PageResult、各类 *Request/*Vo）
 │   │   └── handler/                      # GlobalExceptionHandler
 │   ├── config/                           # Security、MyBatis-Plus、Knife4j、CAS、异步、@CurrentUser
@@ -173,16 +173,19 @@ Authorization: Bearer <token>
 
 ## API 概览
 
-**完整契约以 [`openapi.yaml`](openapi.yaml) 为准**（57 条 path / 75 个 operation），`doc.html` 是它的可视化版本。README 只给出模块地图，不逐条重抄——重抄必然再次落后于代码。
+**完整契约以 [`openapi.yaml`](openapi.yaml) 为准**（65 条 path / 83 个 operation），`doc.html` 是它的可视化版本。README 只给出模块地图，不逐条重抄——重抄必然再次落后于代码。
 
 | 前缀 | 控制器 | 规模 | 鉴权 | 职责 |
 | ---- | ---- | ---- | ---- | ---- |
 | `/api/v1/auth` | `AuthController` | 8 path | **免登录** | 登录、验证码、CAS SSO、刷新、退出 |
 | `/api/v2/content` | `ContentController` | 7 path | 登录即可 | 新闻/公告/活动的只读查询，只返回已发布且在展示期内的内容 |
 | `/api/v2/branch` | ~~`BranchController`~~ | 3 path / 5 op | `branch_admin` | **已标废弃**（#51），能力全部由 `/api/v4/admin/branches/*` 覆盖，观察一个迭代后删除 |
-| `/api/v4/admin` | `AdminController` + `AdminSignRecordController` + `AdminActivitySignupController` | 36 path / 50 op | `super_admin` | 用户、支部、角色权限、活动、新闻、公告、签到报名记录、操作日志、Excel 导入 |
+| `/api/v4/admin` | `AdminController` + `AdminSignRecordController` + `AdminActivitySignupController` + `AdminThoughtReportController` | 37 path / 51 op | `super_admin` | 用户、支部、角色权限、活动、新闻、公告、签到/报名/思想汇报记录、操作日志、Excel 导入 |
 | `/api/v4/user` | `UserController` | 1 path / 2 op | 登录即可 | 个人中心：查看/编辑本人资料 |
 | `/api/v4/activities` | `ActivitySignController` + `ActivitySignupController` | 2 path / 3 op | 登录即可 | 成员签到与报名/取消（v4 前缀下按资源独立成类） |
+| `/api/v4/thought-reports` | `ThoughtReportController` | 3 path / 3 op | 登录即可 | 思想汇报：提交（自动派审秘书）/我的列表/撤回 |
+| `/api/v4/review/thought-reports` | `ThoughtReportReviewController` | 3 path / 3 op | `branch_admin` | 审阅侧：待审列表/详情/通过驳回（越权=「不存在」） |
+| `/api/v4/uploads` | `UploadController` | 1 path / 1 op | 登录即可 | 本地附件上传（白名单扩展名，返回 file: 路径） |
 
 补充说明：
 
@@ -260,6 +263,11 @@ spring:
   profiles:
     include: secret                     # 导入 application-secret.yaml（真实凭据，已 gitignore）
 
+app:
+  upload:
+    dir: ./data/uploads              # 本地附件存储根目录（#33 一期；OSS 后续平替），
+                                      # 按 thought/yyyy/MM/uuid.ext 组织，库内存 file: 相对路径
+
 mybatis-plus:
   global-config:
     db-config:
@@ -325,7 +333,7 @@ Controller 中用 `@CurrentUser User user` 直接拿到当前登录用户（`use
 - [x] `tb_sign_record` — 活动签到（成员签到 + 管理员按活动查记录；location 以 WKT 落 POINT）
 - [x] `tb_activity_signup` — 活动报名（报名即生效、开始前可取消、名额与年级/学院校验；身份维度待 #44）
 - [ ] 二维码 / token 签到、地理围栏
-- [ ] `tb_thought_report` — 思想汇报提交与审阅流
+- [x] `tb_thought_report` — 思想汇报提交与审阅流（自动派审秘书 / 本地附件上传 / 状态机 1-2-3，见 #33）
 - [ ] `tb_study` / `tb_study_record` — 学习课程与学习记录
 - [ ] `tb_identity_change` — 政治身份变更的申请/审批链路（表已建，无业务层）
 - [ ] 短信验证码通道（结构已留，仅写日志）

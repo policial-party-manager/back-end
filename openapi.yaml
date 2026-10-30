@@ -4645,8 +4645,421 @@ paths:
                         format: "int64"
                     description: "通用分页返回结构"
                 description: "统一响应"
+  /api/v4/thought-reports:
+    post:
+      summary: "提交思想汇报"
+      description: "审阅人由服务端按所属支部秘书自动派定；附件先经 POST /api/v4/uploads 上传后以 file: 路径传入"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                title:
+                  type: "string"
+                  description: "标题（最长 100）"
+                content:
+                  type: "string"
+                  description: "正文"
+                file:
+                  type: "string"
+                  description: "附件相对路径（file: 前缀，可空）"
+              description: "思想汇报提交请求（成员侧）"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/ThoughtReportVoDetail"
+  /api/v4/thought-reports/mine/page:
+    get:
+      summary: "我的汇报分页"
+      description: "仅本人数据；可按状态过滤（1 待审阅 / 2 通过 / 3 驳回）；列表不含正文"
+      parameters:
+      - name: "page"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "1"
+      - name: "size"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "10"
+      - name: "status"
+        in: "query"
+        description: "1 待审阅 / 2 通过 / 3 驳回（可空）"
+        required: false
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/ThoughtReportVoPage"
+  /api/v4/thought-reports/{id}:
+    delete:
+      summary: "撤回汇报"
+      description: "仅未审阅（status=1）可撤回；已审阅返回 400"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    description: "无数据"
+  /api/v4/review/thought-reports/page:
+    get:
+      summary: "待我审阅分页"
+      description: "branch_admin；仅指派给当前用户的汇报；可按状态过滤；列表不含正文"
+      parameters:
+      - name: "page"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "1"
+      - name: "size"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "10"
+      - name: "status"
+        in: "query"
+        required: false
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/ThoughtReportVoPage"
+  /api/v4/review/thought-reports/{id}:
+    get:
+      summary: "汇报详情（审阅侧）"
+      description: "含正文；非指派者访问返回「思想汇报不存在」"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/ThoughtReportVoDetail"
+  /api/v4/review/thought-reports/{id}/review:
+    post:
+      summary: "审阅（通过/驳回）"
+      description: "仅 status=1 可审；重复审阅 400。驳回后成员重提生成新记录，本条留痕"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                pass:
+                  type: "boolean"
+                  description: "true=通过（2），false=驳回（3）"
+                remark:
+                  type: "string"
+                  description: "审阅意见（最长 50，可空）"
+              description: "思想汇报审阅请求（审阅人侧）"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/ThoughtReportVoDetail"
+  /api/v4/admin/thought-reports/page:
+    get:
+      summary: "思想汇报全局分页"
+      description: "super_admin 只读兜底：秘书缺岗时全局查看；可按提交人/状态过滤"
+      parameters:
+      - name: "page"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "1"
+      - name: "size"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "10"
+      - name: "status"
+        in: "query"
+        required: false
+        schema:
+          type: "integer"
+      - name: "userId"
+        in: "query"
+        description: "按提交人过滤（可空）"
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/ThoughtReportVoPage"
+  /api/v4/uploads:
+    post:
+      summary: "上传附件"
+      description: "multipart 字段 file；category 目前仅 thought；扩展名限 pdf/doc/docx/jpg/png；返回 file: 前缀相对路径，提交表单时原样带回"
+      parameters:
+      - name: "category"
+        in: "query"
+        description: "存储分类（目前仅 thought）"
+        required: false
+        schema:
+          type: "string"
+          default: "thought"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              properties:
+                file:
+                  type: "string"
+                  format: "binary"
+              required:
+              - "file"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      url:
+                        type: "string"
+                        description: "形如 file:thought/2026/10/uuid.pdf"
+                      originalName:
+                        type: "string"
+                        description: "原始文件名（仅回显）"
+                      size:
+                        type: "integer"
+                        format: "int64"
+                        description: "字节数"
 components:
   schemas:
+    ThoughtReportVoDetail:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          description: ""
+        userId:
+          type: "integer"
+          format: "int64"
+          description: "提交人用户id"
+        submitterName:
+          type: "string"
+          description: "提交人姓名"
+        reviewerId:
+          type: "integer"
+          format: "int64"
+          description: "审阅人用户id（提交时自动派定为本支部书记）"
+        reviewerName:
+          type: "string"
+          description: "审阅人姓名"
+        title:
+          type: "string"
+          description: ""
+        content:
+          type: "string"
+          description: "正文（仅单条详情返回，列表不带）"
+        file:
+          type: "string"
+          description: "附件相对路径，可空"
+        status:
+          type: "integer"
+          description: "1 待审阅 / 2 通过 / 3 驳回"
+        statusName:
+          type: "string"
+          description: "状态中文名"
+        reviewRemark:
+          type: "string"
+          description: "审阅意见"
+        submitTime:
+          type: "string"
+          format: "date-time"
+          description: ""
+        reviewTime:
+          type: "string"
+          format: "date-time"
+          description: ""
+    ThoughtReportVoPage:
+      type: "object"
+      properties:
+        records:
+          type: "array"
+          description: "当前页数据（列表不含正文）"
+          items:
+            type: "object"
+            properties:
+              id:
+                type: "integer"
+                format: "int64"
+                description: ""
+              userId:
+                type: "integer"
+                format: "int64"
+                description: "提交人用户id"
+              submitterName:
+                type: "string"
+                description: "提交人姓名"
+              reviewerId:
+                type: "integer"
+                format: "int64"
+                description: "审阅人用户id"
+              reviewerName:
+                type: "string"
+                description: "审阅人姓名"
+              title:
+                type: "string"
+                description: ""
+              file:
+                type: "string"
+                description: "附件相对路径，可空"
+              status:
+                type: "integer"
+                description: "1 待审阅 / 2 通过 / 3 驳回"
+              statusName:
+                type: "string"
+                description: "状态中文名"
+              reviewRemark:
+                type: "string"
+                description: "审阅意见"
+              submitTime:
+                type: "string"
+                format: "date-time"
+                description: ""
+              reviewTime:
+                type: "string"
+                format: "date-time"
+                description: ""
+        total:
+          type: "integer"
+          format: "int64"
+          description: "总记录数"
+        page:
+          type: "integer"
+          format: "int64"
+          description: "当前页码（从 1 开始）"
+        size:
+          type: "integer"
+          format: "int64"
+          description: "每页大小"
     sicau.policialPartyManager.api.dto.LoginResponse:
       type: "object"
       properties:
