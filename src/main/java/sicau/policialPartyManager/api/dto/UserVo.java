@@ -60,6 +60,12 @@ public class UserVo {
     /** 角色编码：super_admin / branch_admin / student */
     private String role;
 
+    /** 当前政治身份 id（tb_identity.id；null=未登记，#44） */
+    private Long identityId;
+
+    /** 当前政治身份名（如 积极分子） */
+    private String identityName;
+
     /** 状态：1 启用 / 2 停用 */
     private Integer status;
 

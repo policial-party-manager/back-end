@@ -22,6 +22,7 @@ erDiagram
     tb_identity ||--o{ tb_identity_change : "来源身份"
     tb_identity ||--o{ tb_identity_change : "目标身份"
     tb_user ||--o{ tb_identity_change : "被变更用户"
+    tb_identity ||--o{ tb_user_detail : "当前身份"
 
     tb_activity_type ||--o{ tb_activity : "活动类型"
     tb_branch ||--o{ tb_activity : "主办支部"
@@ -54,7 +55,7 @@ erDiagram
 | 域 | 表 |
 | --- | --- |
 | **用户权限** | `tb_user`、`tb_user_detail`、`tb_user_role`、`tb_role`、`tb_role_permission` |
-| **组织与身份** | `tb_branch`、`tb_identity`、`tb_identity_change` |
+| **组织与身份** | `tb_branch`、`tb_identity`、`tb_identity_change`（`tb_user_detail.identity_id` 存当前身份） |
 | **党建业务** | `tb_activity`、`tb_activity_detail`、`tb_activity_identity`、`tb_activity_signup`、`tb_activity_type`、`tb_sign_record`、`tb_study`、`tb_study_record`、`tb_thought_report` |
 | **内容与日志** | `tb_news`、`tb_notice`、`tb_notice_top`、`tb_operation` |
 
@@ -68,7 +69,7 @@ erDiagram
 
 - 账号与档案拆表：`tb_user` 只存登录凭据与状态（`status`：1 启用 / 2 停用）；`tb_user_detail` 以 `user_id` 作主键，1:1
 - `tb_user_detail` 上 `email`、`phone`、`student_id` 各有唯一索引
-- 政治身份不放在用户表，走 `tb_identity` + `tb_identity_change` 记录变更历史
+- 政治身份「当前值」存 `tb_user_detail.identity_id`（#44 新增，NULL=未登记）；变更历史与审批单存 `tb_identity_change`（两阶段：1 待审批 / 2 已生效 / 3 驳回），生效时同事务写回当前身份；**身份变更永不联动登录角色**
 
 ### `tb_role` / `tb_role_permission`
 
@@ -102,7 +103,13 @@ erDiagram
 
 - 一行 = 一个用户对某活动的一次有效报名；取消即删除该行（名额随之释放）
 - `unique(activity_id, user_id)` 挡重复报名；`signup_time` 默认当前时间
-- 身份维度本期不校验（用户当前身份未落库，见 #44），仅按 `tb_activity_identity` 的年级/学院匹配
+- 报名身份维度校验待接通：当前身份已由 #44 落库（`tb_user_detail.identity_id`），接通见 #53 后续
+
+### `tb_identity` / `tb_identity_change`（#44）
+
+- `tb_identity`：6 级政治身份字典（level 1~6），迁移播种、`identity_name` 唯一、超管可维护；`role_id` 可空且**仅展示映射，不参与鉴权**
+- `tb_identity_change`：两阶段单据——`from_identity` 发起时快照（首次登记 NULL）、`status` CHECK(1,2,3)、审批人/时间/意见；仅超管审批，通过才写回 `identity_id`
+- 同一用户同时只允许一张待审批单
 
 ### `tb_notice` / `tb_notice_top`
 
@@ -113,7 +120,7 @@ erDiagram
 
 - 一行代表一个用户对某活动的一次有效报名；取消即删除该行（名额随之释放）
 - `unique(activity_id, user_id)` 挡重复报名；`signup_time` 默认当前时间
-- **身份维度本期不校验**（用户当前身份未落库，见 #44），只按 `tb_activity_identity` 的年级/学院匹配
+- **身份维度校验待接通**（当前身份已由 #44 落库为 `tb_user_detail.identity_id`；现按 `tb_activity_identity` 的年级/学院匹配）
 
 
 ---

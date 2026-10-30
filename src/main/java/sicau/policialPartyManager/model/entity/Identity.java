@@ -32,7 +32,8 @@ public class Identity {
     private Integer level;
 
     /**
-     * 对应角色id（关联 tb_role.id）
+     * 对应角色id（关联 tb_role.id）。
+     * 仅展示映射，不参与鉴权；身份变更审批永不联动登录角色（#44 决策红线）。
      */
     private Long roleId;
 

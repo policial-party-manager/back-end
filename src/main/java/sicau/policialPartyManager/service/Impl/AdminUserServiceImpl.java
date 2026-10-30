@@ -22,6 +22,8 @@ import sicau.policialPartyManager.repository.RoleMapper;
 import sicau.policialPartyManager.repository.UserDetailMapper;
 import sicau.policialPartyManager.repository.UserMapper;
 import sicau.policialPartyManager.repository.UserRoleMapper;
+import sicau.policialPartyManager.model.entity.Identity;
+import sicau.policialPartyManager.repository.IdentityMapper;
 import sicau.policialPartyManager.service.AdminUserService;
 import sicau.policialPartyManager.utils.ExcelUtil;
 
@@ -64,6 +66,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final RoleMapper roleMapper;
     private final BranchMapper branchMapper;
     private final PasswordEncoder passwordEncoder;
+    private final IdentityMapper identityMapper;
 
     @Override
     public PageResult<UserVo> pageUsers(long page, long size, String keyword, Long branchId, Long roleId, Integer status) {
@@ -275,6 +278,14 @@ public class AdminUserServiceImpl implements AdminUserService {
                 : branchMapper.selectBatchIds(branchIds).stream()
                 .collect(Collectors.toMap(Branch::getId, Function.identity(), (a, b) -> a));
 
+        Set<Long> identityIds = detailMap.values().stream()
+                .map(UserDetail::getIdentityId).filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, String> identityNameMap = identityIds.isEmpty() ? Collections.emptyMap()
+                : identityMapper.selectBatchIds(identityIds).stream()
+                .filter(i -> i.getIdentityName() != null)
+                .collect(Collectors.toMap(Identity::getId, Identity::getIdentityName, (a, b) -> a));
+
         List<UserVo> vos = new ArrayList<>();
         for (User user : users) {
             UserVo vo = new UserVo();
@@ -301,6 +312,9 @@ public class AdminUserServiceImpl implements AdminUserService {
                 vo.setBranchId(detail.getBranchId());
                 Branch branch = detail.getBranchId() == null ? null : branchMap.get(detail.getBranchId());
                 vo.setBranchName(branch == null ? null : branch.getBranchName());
+                vo.setIdentityId(detail.getIdentityId());
+                vo.setIdentityName(detail.getIdentityId() == null ? null
+                        : identityNameMap.get(detail.getIdentityId()));
             }
             Long roleId = userRoleMap.get(user.getId());
             vo.setRoleId(roleId);

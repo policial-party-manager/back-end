@@ -15,6 +15,7 @@ create table tb_user_detail
     class_name           varchar(50) null comment '班级',
     contact_person       varchar(50) null comment '紧急联系人',
     remark               varchar(500) null comment '备注',
+    identity_id          int          null comment '当前政治身份（FK tb_identity；NULL=未登记；身份变更审批生效时写回）',
     constraint tb_user_detail_email_uindex
         unique (email),
     constraint tb_user_detail_email_user_id_uindex
@@ -27,6 +28,8 @@ create table tb_user_detail
         unique (student_id, user_id),
     constraint tb_user_detail_tb_branch_id_fk
         foreign key (branch_id) references tb_branch (id),
+    constraint tb_user_detail_tb_identity_id_fk
+        foreign key (identity_id) references tb_identity (id),
     constraint tb_user_detail_tb_user_id_fk
         foreign key (user_id) references tb_user (id)
             on delete cascade

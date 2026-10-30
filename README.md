@@ -42,7 +42,7 @@
 ├── src/main/java/sicau/policialPartyManager/
 │   ├── PolicialPartyManagerApplication.java
 │   ├── api/
-│   │   ├── controller/                   # 17 个控制器（见下方 API 概览）
+│   │   ├── controller/                   # 21 个控制器（见下方 API 概览）
 │   │   ├── dto/                          # 请求/响应对象（Result、PageResult、各类 *Request/*Vo）
 │   │   └── handler/                      # GlobalExceptionHandler
 │   ├── config/                           # Security、MyBatis-Plus、Knife4j、CAS、异步、@CurrentUser
@@ -173,18 +173,19 @@ Authorization: Bearer <token>
 
 ## API 概览
 
-**完整契约以 [`openapi.yaml`](openapi.yaml) 为准**（73 条 path / 92 个 operation），`doc.html` 是它的可视化版本。README 只给出模块地图，不逐条重抄——重抄必然再次落后于代码。
+**完整契约以 [`openapi.yaml`](openapi.yaml) 为准**（81 条 path / 101 个 operation），`doc.html` 是它的可视化版本。README 只给出模块地图，不逐条重抄——重抄必然再次落后于代码。
 
 | 前缀 | 控制器 | 规模 | 鉴权 | 职责 |
 | ---- | ---- | ---- | ---- | ---- |
 | `/api/v1/auth` | `AuthController` | 8 path | **免登录** | 登录、验证码、CAS SSO、刷新、退出 |
-| `/api/v2/content` | `ContentController` + `StudyCourseContentController` | 8 path | 登录即可 | 新闻/公告/活动的只读查询，只返回已发布且在展示期内的内容 |
+| `/api/v2/content` | `ContentController` + `StudyCourseContentController` + `IdentityContentController` | 9 path | 登录即可 | 新闻/公告/活动的只读查询，只返回已发布且在展示期内的内容 |
 | `/api/v2/branch` | ~~`BranchController`~~ | 3 path / 5 op | `branch_admin` | **已标废弃**（#51），能力全部由 `/api/v4/admin/branches/*` 覆盖，观察一个迭代后删除 |
-| `/api/v4/admin` | `AdminController` + `AdminSignRecordController` + `AdminActivitySignupController` + `AdminThoughtReportController` + `AdminStudyCourseController` + `AdminStudyRecordController` | 42 path / 57 op | `super_admin` | 用户、支部、角色权限、活动、新闻、公告、签到/报名/思想汇报记录、操作日志、Excel 导入 |
-| `/api/v4/user` | `UserController` + `UserStudyRecordController` | 3 path / 5 op | 登录即可 | 个人中心：资料查看/编辑 + 我的学习记录/汇总 |
+| `/api/v4/admin` | `AdminController` + `AdminSignRecordController` + `AdminActivitySignupController` + `AdminThoughtReportController` + `AdminStudyCourseController` + `AdminStudyRecordController` + `AdminIdentityController` | 44 path / 60 op | `super_admin` | 用户、支部、角色权限、活动、新闻、公告、签到/报名/思想汇报记录、操作日志、Excel 导入 |
+| `/api/v4/user` | `UserController` + `UserStudyRecordController` + `UserIdentityChangeController` | 4 path / 6 op | 登录即可 | 个人中心：资料查看/编辑 + 我的学习记录/汇总 + 我的身份变更单 |
 | `/api/v4/activities` | `ActivitySignController` + `ActivitySignupController` | 2 path / 3 op | 登录即可 | 成员签到与报名/取消（v4 前缀下按资源独立成类） |
 | `/api/v4/thought-reports` | `ThoughtReportController` | 3 path / 3 op | 登录即可 | 思想汇报：提交（自动派审秘书）/我的列表/撤回 |
 | `/api/v4/review/thought-reports` | `ThoughtReportReviewController` | 3 path / 3 op | `branch_admin` | 审阅侧：待审列表/详情/通过驳回（越权=「不存在」） |
+| `/api/v4/identity-changes` | `IdentityChangeController` | 4 path / 4 op | `branch_admin` 发起 / `super_admin` 审批 | 身份变更两阶段单（支管限本支部） |
 | `/api/v4/uploads` | `UploadController` | 1 path / 1 op | 登录即可 | 本地附件上传（白名单扩展名，返回 file: 路径） |
 
 补充说明：
@@ -221,7 +222,7 @@ Authorization: Bearer <token>
 | 党建业务 | `tb_activity`、`tb_activity_detail`、`tb_activity_identity`、`tb_activity_signup`、`tb_activity_type`、`tb_sign_record`、`tb_study`、`tb_study_record`、`tb_thought_report` |
 | 内容与日志 | `tb_news`、`tb_notice`、`tb_notice_top`、`tb_operation` |
 
-**政治身份级别**（`tb_identity.level`）：
+**政治身份级别**（`tb_identity.level`，字典由迁移播种、超管可维护；`tb_identity.role_id` 仅展示映射，**不参与鉴权**）：
 
 | Level | 身份 | 说明 |
 | ---- | ---- | ---- |
@@ -232,7 +233,7 @@ Authorization: Bearer <token>
 | 5 | 预备党员 | 已批准预备 |
 | 6 | 正式党员 | 已转正 |
 
-> `tb_activity_identity` 承载活动的目标人群范围（身份/年级/学院）；报名记录本身在 `tb_activity_signup`（身份维度校验待 #44 用户身份落库后补齐）。
+> `tb_activity_identity` 承载活动的目标人群范围（身份/年级/学院）；报名记录本身在 `tb_activity_signup`（身份维度校验待接通：当前身份已由 #44 落库为 `tb_user_detail.identity_id`）。
 
 ---
 
@@ -331,11 +332,11 @@ Controller 中用 `@CurrentUser User user` 直接拿到当前登录用户（`use
 **尚未实现**：
 
 - [x] `tb_sign_record` — 活动签到（成员签到 + 管理员按活动查记录；location 以 WKT 落 POINT）
-- [x] `tb_activity_signup` — 活动报名（报名即生效、开始前可取消、名额与年级/学院校验；身份维度待 #44）
+- [x] `tb_activity_signup` — 活动报名（报名即生效、开始前可取消、名额与年级/学院校验；身份维度接通见 #44 后续）
 - [ ] 二维码 / token 签到、地理围栏
 - [x] `tb_thought_report` — 思想汇报提交与审阅流（自动派审秘书 / 本地附件上传 / 状态机 1-2-3，见 #33）
 - [x] `tb_study` / `tb_study_record` — 学习课程字典与学习记录（管理员录入/upsert/成员只读汇总，见 #32）
-- [ ] `tb_identity_change` — 政治身份变更的申请/审批链路（表已建，无业务层）
+- [x] `tb_identity_change` — 政治身份变更两阶段流（支管发起→超管审批→写回当前身份；字典已播种，见 #44）
 - [ ] 短信验证码通道（结构已留，仅写日志）
 - [ ] 用户自助改密 / 忘记密码找回（目前只有管理员重置）
 - [ ] 支部管理员的数据隔离（`branch_admin` 目前只能访问 v2 支部接口，未见按支部过滤的成员数据）
