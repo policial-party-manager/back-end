@@ -4949,8 +4949,463 @@ paths:
                         type: "integer"
                         format: "int64"
                         description: "字节数"
+  /api/v4/admin/study-courses:
+    post:
+      summary: "新增课程"
+      description: "名称全表唯一；类型自由文本（如 必修/选修/专题）；仅超管"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                name:
+                  type: "string"
+                  description: "课程名（最长 30）"
+                type:
+                  type: "string"
+                  description: "类型（最长 20，自由文本）"
+              description: "课程字典新增/编辑请求（#32，超管维护）"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        format: "int64"
+                        description: "课程ID（主键，自增）"
+                      name:
+                        type: "string"
+                        description: "课程名"
+                      type:
+                        type: "string"
+                        description: "类型（自由文本，如 必修/选修/专题）"
+                    description: "课程实体\n对应数据库表：tb_study"
+  /api/v4/admin/study-courses/{id}:
+    put:
+      summary: "编辑课程"
+      description: "重名（不含自身）拒绝；仅超管"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                name:
+                  type: "string"
+                  description: "课程名（最长 30）"
+                type:
+                  type: "string"
+                  description: "类型（最长 20，自由文本）"
+              description: "课程字典新增/编辑请求（#32，超管维护）"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        format: "int64"
+                        description: ""
+                      name:
+                        type: "string"
+                        description: ""
+                      type:
+                        type: "string"
+                        description: ""
+                    description: "课程实体\n对应数据库表：tb_study"
+    delete:
+      summary: "删除课程"
+      description: "已有学习记录引用的课程不可删除（返回可读 400）；仅超管"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    description: "无数据"
+  /api/v2/content/study-courses/page:
+    get:
+      summary: "课程分页列表"
+      description: "keyword 匹配课程名，type 精确过滤；所有登录用户可读（录入选课/查看目录）"
+      parameters:
+      - name: "page"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "1"
+      - name: "size"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "10"
+      - name: "keyword"
+        in: "query"
+        description: "匹配课程名"
+        required: false
+        schema:
+          type: "string"
+      - name: "type"
+        in: "query"
+        description: "课程类型精确过滤"
+        required: false
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      records:
+                        type: "array"
+                        description: "当前页数据"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              format: "int64"
+                              description: ""
+                            name:
+                              type: "string"
+                              description: ""
+                            type:
+                              type: "string"
+                              description: ""
+                      total:
+                        type: "integer"
+                        format: "int64"
+                        description: "总记录数"
+                      page:
+                        type: "integer"
+                        format: "int64"
+                        description: "当前页码（从 1 开始）"
+                      size:
+                        type: "integer"
+                        format: "int64"
+                        description: "每页大小"
+                    description: "通用分页返回结构"
+  /api/v4/admin/study-records:
+    post:
+      summary: "录入学习记录"
+      description: "一人一课一行：重复提交=覆盖更新；branch_admin 只能录入自己担任秘书的支部成员；越界统一「用户不存在」语义"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                userId:
+                  type: "integer"
+                  format: "int64"
+                  description: "目标用户id（须有成员档案）"
+                courseId:
+                  type: "integer"
+                  format: "int64"
+                  description: "课程id"
+                studyTime:
+                  type: "string"
+                  description: "学时（HH:mm:ss）"
+                score:
+                  type: "number"
+                  description: "成绩 0~100，支持两位小数"
+                url:
+                  type: "string"
+                  description: "证书链接（最长 30，可空）"
+                remark:
+                  type: "string"
+                  description: "备注（可空）"
+              description: "学习记录录入请求（#32，管理员侧，upsert 语义）"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/StudyRecordVo"
+  /api/v4/admin/study-records/{id}:
+    delete:
+      summary: "删除学习记录"
+      description: "同录入权限面；支管越界按「记录不存在」处理"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    description: "无数据"
+  /api/v4/admin/study-records/page:
+    get:
+      summary: "学习记录分页（管理侧）"
+      description: "超管可按 userId/courseId/courseType 过滤全局；支管只看本支部成员（userId 可选过滤）"
+      parameters:
+      - name: "page"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "1"
+      - name: "size"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "10"
+      - name: "userId"
+        in: "query"
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+      - name: "courseId"
+        in: "query"
+        description: "仅超管生效"
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+      - name: "courseType"
+        in: "query"
+        description: "仅超管生效：按课程类型过滤"
+        required: false
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/StudyRecordVoPage"
+  /api/v4/user/study-records/mine/page:
+    get:
+      summary: "我的学习记录分页"
+      description: "仅本人数据，含课程名/类型"
+      parameters:
+      - name: "page"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "1"
+      - name: "size"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "10"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/StudyRecordVoPage"
+  /api/v4/user/study-records/mine/summary:
+    get:
+      summary: "我的学习汇总"
+      description: "条数、总学时（分钟）、平均分（两位小数）"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      recordCount:
+                        type: "integer"
+                        format: "int64"
+                        description: "记录条数"
+                      totalMinutes:
+                        type: "integer"
+                        format: "int64"
+                        description: "总学时（分钟）"
+                      avgScore:
+                        type: "number"
+                        description: "平均分（两位小数；无记录为 null）"
+                    description: "成员学习汇总（#32）"
 components:
   schemas:
+    StudyRecordVo:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          description: ""
+        userId:
+          type: "integer"
+          format: "int64"
+          description: "学生用户id"
+        studentName:
+          type: "string"
+          description: "学生姓名"
+        courseId:
+          type: "integer"
+          format: "int64"
+          description: "课程id"
+        courseName:
+          type: "string"
+          description: "课程名"
+        courseType:
+          type: "string"
+          description: "课程类型"
+        studyTime:
+          type: "string"
+          description: "学时（HH:mm:ss）"
+        score:
+          type: "number"
+          description: "成绩（0~100，两位小数）"
+        url:
+          type: "string"
+          description: "证书链接"
+        remark:
+          type: "string"
+          description: "备注"
+        createTime:
+          type: "string"
+          format: "date-time"
+          description: ""
+      description: "学习记录视图（内嵌学生与课程姓名）"
+    StudyRecordVoPage:
+      type: "object"
+      properties:
+        records:
+          type: "array"
+          description: "当前页数据"
+          items:
+            $ref: "#/components/schemas/StudyRecordVo"
+        total:
+          type: "integer"
+          format: "int64"
+          description: "总记录数"
+        page:
+          type: "integer"
+          format: "int64"
+          description: "当前页码（从 1 开始）"
+        size:
+          type: "integer"
+          format: "int64"
+          description: "每页大小"
+      description: "通用分页返回结构"
     ThoughtReportVoDetail:
       type: "object"
       properties:
