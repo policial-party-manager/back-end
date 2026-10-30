@@ -3463,8 +3463,9 @@ paths:
                     format: "int64"
   /api/v2/branch/list:
     get:
-      summary: "支部列表"
-      description: "支部列表"
+      deprecated: true
+      summary: "支部列表（已废弃）"
+      description: "已废弃：请改用 GET /api/v4/admin/branches/page"
       responses:
         "200":
           description: ""
@@ -3514,8 +3515,9 @@ paths:
                       description: "党支部表实体\n对应数据库表：tb_branch"
   /api/v2/branch/{id}:
     get:
-      summary: "支部详情"
-      description: "支部详情"
+      deprecated: true
+      summary: "支部详情（已废弃）"
+      description: "已废弃：请改用 GET /api/v4/admin/branches/{id}"
       parameters:
       - name: "id"
         in: "path"
@@ -3568,8 +3570,9 @@ paths:
                         description: "是否删除（0：未删除，1：已删除）"
                     description: ""
     put:
-      summary: "编辑支部"
-      description: "编辑支部"
+      deprecated: true
+      summary: "编辑支部（已废弃）"
+      description: "已废弃：请改用 PUT /api/v4/admin/branches/{id}"
       parameters:
       - name: "id"
         in: "path"
@@ -3628,8 +3631,9 @@ paths:
                     type: "string"
                     description: ""
     delete:
-      summary: "删除支部（软删除）"
-      description: "删除支部（软删除）"
+      deprecated: true
+      summary: "删除支部（已废弃）"
+      description: "已废弃：请改用 DELETE /api/v4/admin/branches/{id}"
       parameters:
       - name: "id"
         in: "path"
@@ -3656,8 +3660,9 @@ paths:
                     description: ""
   /api/v2/branch:
     post:
-      summary: "新增支部"
-      description: "新增支部"
+      deprecated: true
+      summary: "新增支部（已废弃）"
+      description: "已废弃：请改用 POST /api/v4/admin/branches"
       requestBody:
         content:
           application/json:
