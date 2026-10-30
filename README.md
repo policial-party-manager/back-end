@@ -233,7 +233,7 @@ Authorization: Bearer <token>
 | 5 | 预备党员 | 已批准预备 |
 | 6 | 正式党员 | 已转正 |
 
-> `tb_activity_identity` 承载活动的目标人群范围（身份/年级/学院）；报名记录本身在 `tb_activity_signup`（身份维度校验待接通：当前身份已由 #44 落库为 `tb_user_detail.identity_id`）。
+> `tb_activity_identity` 承载活动的目标人群范围（身份/年级/学院）；报名记录本身在 `tb_activity_signup`（三个维度均生效，身份比对用户当前身份 `tb_user_detail.identity_id`，#61 接通）。
 
 ---
 
@@ -332,7 +332,7 @@ Controller 中用 `@CurrentUser User user` 直接拿到当前登录用户（`use
 **尚未实现**：
 
 - [x] `tb_sign_record` — 活动签到（成员签到 + 管理员按活动查记录；location 以 WKT 落 POINT）
-- [x] `tb_activity_signup` — 活动报名（报名即生效、开始前可取消、名额与年级/学院校验；身份维度接通见 #44 后续）
+- [x] `tb_activity_signup` — 活动报名（报名即生效、开始前可取消、名额与年级/学院/政治身份三维校验）
 - [ ] 二维码 / token 签到、地理围栏
 - [x] `tb_thought_report` — 思想汇报提交与审阅流（自动派审秘书 / 本地附件上传 / 状态机 1-2-3，见 #33）
 - [x] `tb_study` / `tb_study_record` — 学习课程字典与学习记录（管理员录入/upsert/成员只读汇总，见 #32）

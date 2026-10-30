@@ -238,6 +238,63 @@ class ActivitySignupServiceImplTest {
         assertTrue(e.getMessage().contains("范围"), e.getMessage());
     }
 
+    // ---------- 身份维度（#61 接通） ----------
+
+    @Test
+    void identityMismatchRejected() {
+        givenActivityAndDetail();
+        ActivityIdentity row = new ActivityIdentity();
+        row.setGrade(2023);
+        row.setTargetIdentity(5L); // 限预备党员
+        when(activityIdentityMapper.selectList(any())).thenReturn(List.of(row));
+        givenUserDetailWithIdentity("2023", null, 6L); // 正式党员
+
+        IllegalArgumentException e =
+                assertThrows(IllegalArgumentException.class, () -> service.signup(1L, 42L));
+        assertTrue(e.getMessage().contains("范围"), e.getMessage());
+    }
+
+    @Test
+    void unregisteredIdentityGetsActionableMessage() {
+        givenActivityAndDetail();
+        ActivityIdentity row = new ActivityIdentity();
+        row.setGrade(2023);
+        row.setTargetIdentity(5L);
+        when(activityIdentityMapper.selectList(any())).thenReturn(List.of(row));
+        givenUserDetailWithIdentity("2023", null, null); // 未登记
+
+        IllegalArgumentException e =
+                assertThrows(IllegalArgumentException.class, () -> service.signup(1L, 42L));
+        assertTrue(e.getMessage().contains("未登记"), e.getMessage());
+        assertTrue(e.getMessage().contains("支部管理员"), e.getMessage());
+    }
+
+    @Test
+    void identityHitPasses() {
+        givenActivityAndDetail();
+        ActivityIdentity row = new ActivityIdentity();
+        row.setGrade(2023);
+        row.setTargetIdentity(6L);
+        when(activityIdentityMapper.selectList(any())).thenReturn(List.of(row));
+        givenUserDetailWithIdentity("2023", null, 6L); // 三维度全中
+        when(signupMapper.selectCount(any())).thenReturn(0L);
+
+        assertNotNull(service.signup(1L, 42L));
+    }
+
+    @Test
+    void rowWithoutTargetIdentityKeepsLegacyBehavior() {
+        // 行未设 target_identity（DDL NOT NULL，代码对脏数据宽松）：维持年级/学院语义
+        givenActivityAndDetail();
+        ActivityIdentity row = new ActivityIdentity();
+        row.setGrade(2023);
+        when(activityIdentityMapper.selectList(any())).thenReturn(List.of(row));
+        givenUserDetailWithIdentity("2023", null, null); // 未登记也应放行
+        when(signupMapper.selectCount(any())).thenReturn(0L);
+
+        assertNotNull(service.signup(1L, 42L));
+    }
+
     // ---------- 取消 ----------
 
     @Test
@@ -287,6 +344,15 @@ class ActivitySignupServiceImplTest {
         givenActivityAndDetail();
         // 未配置范围 -> 不查用户档案
         when(activityIdentityMapper.selectList(any())).thenReturn(List.of());
+    }
+
+    private void givenUserDetailWithIdentity(String grade, String college, Long identityId) {
+        UserDetail ud = new UserDetail();
+        ud.setUserId(42L);
+        ud.setGrade(grade);
+        ud.setCollege(college);
+        ud.setIdentityId(identityId);
+        when(userDetailMapper.selectById(42L)).thenReturn(ud);
     }
 
     private void givenUserDetail(String grade, String college) {
