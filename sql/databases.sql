@@ -5,7 +5,7 @@
 --     mysql -u root -p < sql/databases.sql
 --
 -- 说明：
---   * 建库（不存在时）+ 按外键依赖顺序依次建表，共 20 张
+--   * 建库（不存在时）+ 按外键依赖顺序依次建表，共 21 张
 --   * 适用于全新环境；库中已有同名表时重跑会报 "Table already exists"
 --   * 单表结构在 sql/tb_*.sql；历史库的增量变更在 sql/alter_*.sql
 --   * 改完任何 DDL 后执行 sql/schema-verify.sh 可验证脚本仍能干净执行
@@ -37,6 +37,7 @@ SOURCE sql/tb_activity.sql;
 SOURCE sql/tb_activity_detail.sql;
 SOURCE sql/tb_activity_identity.sql;
 SOURCE sql/tb_sign_record.sql;
+SOURCE sql/tb_activity_signup.sql;
 
 -- 五、学习与汇报
 SOURCE sql/tb_study_record.sql;
@@ -49,4 +50,4 @@ SOURCE sql/tb_notice_top.sql;
 SOURCE sql/tb_operation.sql;
 SOURCE sql/tb_identity_change.sql;
 
-SELECT '数据库 policial_party_manager 初始化完成（20 张表）' AS result;
+SELECT '数据库 policial_party_manager 初始化完成（21 张表）' AS result;

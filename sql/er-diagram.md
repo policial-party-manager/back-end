@@ -1,6 +1,6 @@
 # 数据库 ER 图
 
-党建云平台后端共 **20 张表**，按四个域组织。对应 DDL 在 [`sql/tb_*.sql`](./)，一键建库见 [`sql/databases.sql`](./databases.sql)。
+党建云平台后端共 **21 张表**，按四个域组织。对应 DDL 在 [`sql/tb_*.sql`](./)，一键建库见 [`sql/databases.sql`](./databases.sql)。
 
 > 设计基线：2026-08-03 收敛版 ER（讨论见历史 issue「关于sql」）。2026-07 的初版表清单（`tb_member` / `tb_permission` / `tb_resource` / `tb_activity_member`）已被本版取代 —— `tb_member` → `tb_user_detail`，`tb_activity_member` → `tb_activity_identity`，`tb_permission` → `tb_role_permission`，`tb_resource` 未采用。
 
@@ -30,6 +30,8 @@ erDiagram
     tb_identity ||--o{ tb_activity_identity : ""
     tb_activity ||--o{ tb_sign_record : "签到"
     tb_user ||--o{ tb_sign_record : ""
+    tb_activity ||--o{ tb_activity_signup : "报名"
+    tb_user ||--o{ tb_activity_signup : ""
 
     tb_study ||--o{ tb_study_record : "课程学习记录"
     tb_user ||--o{ tb_study_record : ""
@@ -53,7 +55,7 @@ erDiagram
 | --- | --- |
 | **用户权限** | `tb_user`、`tb_user_detail`、`tb_user_role`、`tb_role`、`tb_role_permission` |
 | **组织与身份** | `tb_branch`、`tb_identity`、`tb_identity_change` |
-| **党建业务** | `tb_activity`、`tb_activity_detail`、`tb_activity_identity`、`tb_activity_type`、`tb_sign_record`、`tb_study`、`tb_study_record`、`tb_thought_report` |
+| **党建业务** | `tb_activity`、`tb_activity_detail`、`tb_activity_identity`、`tb_activity_signup`、`tb_activity_type`、`tb_sign_record`、`tb_study`、`tb_study_record`、`tb_thought_report` |
 | **内容与日志** | `tb_news`、`tb_notice`、`tb_notice_top`、`tb_operation` |
 
 `tb_activity_type` 与 `tb_study` 是纯字典表，无外键依赖。
@@ -90,11 +92,23 @@ erDiagram
 - `activity_id` + `user_id` 构成业务上的签到关系
 - `location` 用 MySQL `point` 类型（WKT），`device`/`sign_type` 记录渠道
 
+### `tb_activity_signup`
+
+- 一行 = 一个用户对某活动的一次有效报名；取消即删除该行（名额随之释放）
+- `unique(activity_id, user_id)` 挡重复报名；`signup_time` 默认当前时间
+- 身份维度本期不校验（用户当前身份未落库，见 #44），仅按 `tb_activity_identity` 的年级/学院匹配
+
 ### `tb_notice` / `tb_notice_top`
 
 - 公告展示期由 `start_time` / `end_time` 控制（可空不限）
 - `status`：1 正常 / 2 已删除 / 3 延期展示
 - 置顶按角色粒度：`tb_notice_top.role_id = 0` 表示对全体置顶
+### `tb_activity_signup`
+
+- 一行代表一个用户对某活动的一次有效报名；取消即删除该行（名额随之释放）
+- `unique(activity_id, user_id)` 挡重复报名；`signup_time` 默认当前时间
+- **身份维度本期不校验**（用户当前身份未落库，见 #44），只按 `tb_activity_identity` 的年级/学院匹配
+
 
 ---
 

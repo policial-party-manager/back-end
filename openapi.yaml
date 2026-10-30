@@ -4432,6 +4432,171 @@ paths:
                         format: "int64"
                     description: "通用分页返回结构"
                 description: "统一响应"
+  /api/v4/activities/{activityId}/signup:
+    post:
+      summary: "活动报名"
+      description: "已发布且未开始的活动可报名；校验重复报名、名额（maxParticipants，空=不限）与目标人群范围（年级/学院；身份维度本期不校验）"
+      parameters:
+      - name: "activityId"
+        in: "path"
+        description: "活动id"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        description: "主键ID（自增）"
+                        format: "int64"
+                      activityId:
+                        type: "integer"
+                        description: "活动id（关联 tb_activity.id）"
+                        format: "int64"
+                      userId:
+                        type: "integer"
+                        description: "用户id（关联 tb_user.id）"
+                        format: "int64"
+                      signupTime:
+                        type: "string"
+                        description: "报名时间"
+                        format: "date-time"
+                    description: "活动报名实体\n对应数据库表：tb_activity_signup"
+                description: "统一响应"
+    delete:
+      summary: "取消报名"
+      description: "活动开始前可取消；记录删除即名额释放"
+      parameters:
+      - name: "activityId"
+        in: "path"
+        description: "活动id"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    description: "无数据"
+                description: "统一响应"
+  /api/v4/admin/activities/{activityId}/signups/page:
+    get:
+      summary: "活动报名记录分页"
+      description: "按活动查报名记录，可按报名人过滤"
+      parameters:
+      - name: "activityId"
+        in: "path"
+        description: "活动id"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      - name: "page"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "1"
+      - name: "size"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "10"
+      - name: "userId"
+        in: "query"
+        description: "按报名人过滤（可空）"
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      records:
+                        type: "array"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: "主键ID（自增）"
+                              format: "int64"
+                            activityId:
+                              type: "integer"
+                              description: "活动id（关联 tb_activity.id）"
+                              format: "int64"
+                            userId:
+                              type: "integer"
+                              description: "用户id（关联 tb_user.id）"
+                              format: "int64"
+                            signupTime:
+                              type: "string"
+                              description: "报名时间"
+                              format: "date-time"
+                          description: "活动报名实体\n对应数据库表：tb_activity_signup"
+                        description: "当前页数据"
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      page:
+                        type: "integer"
+                        description: "当前页码（从 1 开始）"
+                        format: "int64"
+                      size:
+                        type: "integer"
+                        description: "每页大小"
+                        format: "int64"
+                    description: "通用分页返回结构"
+                description: "统一响应"
 components:
   schemas:
     sicau.policialPartyManager.api.dto.LoginResponse:
