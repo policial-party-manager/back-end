@@ -4249,6 +4249,189 @@ paths:
                           type: "integer"
                           description: "是否计入档案（1：计入，0：不计入）"
                       description: "活动类型实体\n对应数据库表：tb_activity_type"
+  /api/v4/activities/{activityId}/sign:
+    post:
+      summary: "活动签到"
+      description: "校验活动已发布、在签到窗内、活动类型需要签到且未重复签到；device/location(WKT)/remark
+        可空"
+      parameters:
+      - name: "activityId"
+        in: "path"
+        description: "活动id"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                activityId:
+                  type: "integer"
+                  format: "int64"
+                  description: "活动id（以路径参数为准，请求体可省略）"
+                device:
+                  type: "string"
+                  description: "签到设备（web/app/mini 等，可空）"
+                location:
+                  type: "string"
+                  description: "地点（WKT 格式，如 POINT(103.96 30.57)，可空）"
+                remark:
+                  type: "string"
+                  description: "备注（可空）"
+              description: "活动签到请求（成员侧）"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        description: "主键ID（自增）"
+                        format: "int64"
+                      activityId:
+                        type: "integer"
+                        description: "活动id（关联 tb_activity.id）"
+                        format: "int64"
+                      userId:
+                        type: "integer"
+                        description: "用户id（关联 tb_user.id）"
+                        format: "int64"
+                      signTime:
+                        type: "string"
+                        description: "签到时间"
+                        format: "date-time"
+                      signType:
+                        type: "string"
+                        description: "签到类型（sign=本人签到，makeup=补签）"
+                      device:
+                        type: "string"
+                        description: "签到设备（web/app/mini 等，可空）"
+                      location:
+                        type: "string"
+                        description: "地点（point 空间类型，以 WKT 字符串读写，可空）"
+                      remark:
+                        type: "string"
+                        description: "备注（可空）"
+                    description: "签到记录实体\n对应数据库表：tb_sign_record"
+                description: "统一响应"
+  /api/v4/admin/activities/{activityId}/signs/page:
+    get:
+      summary: "活动签到记录分页"
+      description: "按活动查签到记录，可按签到人过滤"
+      parameters:
+      - name: "activityId"
+        in: "path"
+        description: "活动id"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      - name: "page"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "1"
+      - name: "size"
+        in: "query"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+          nullable: false
+          default: "10"
+      - name: "userId"
+        in: "query"
+        description: "按签到人过滤（可空）"
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      records:
+                        type: "array"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: "主键ID（自增）"
+                              format: "int64"
+                            activityId:
+                              type: "integer"
+                              description: "活动id（关联 tb_activity.id）"
+                              format: "int64"
+                            userId:
+                              type: "integer"
+                              description: "用户id（关联 tb_user.id）"
+                              format: "int64"
+                            signTime:
+                              type: "string"
+                              description: "签到时间"
+                              format: "date-time"
+                            signType:
+                              type: "string"
+                              description: "签到类型（sign=本人签到，makeup=补签）"
+                            device:
+                              type: "string"
+                              description: "签到设备（web/app/mini 等，可空）"
+                            location:
+                              type: "string"
+                              description: "地点（point 空间类型，以 WKT 字符串读写，可空）"
+                            remark:
+                              type: "string"
+                              description: "备注（可空）"
+                          description: "签到记录实体\n对应数据库表：tb_sign_record"
+                        description: "当前页数据"
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      page:
+                        type: "integer"
+                        description: "当前页码（从 1 开始）"
+                        format: "int64"
+                      size:
+                        type: "integer"
+                        description: "每页大小"
+                        format: "int64"
+                    description: "通用分页返回结构"
+                description: "统一响应"
 components:
   schemas:
     sicau.policialPartyManager.api.dto.LoginResponse:
