@@ -9,6 +9,12 @@ import sicau.policialPartyManager.service.BranchService;
 
 import java.util.List;
 
+/**
+ * 已废弃：仅服务于 {@code /api/v2/branch}，观察期后随控制器与接口一并删除。
+ *
+ * @deprecated 后台支部能力见 {@code AdminBranchServiceImpl}
+ */
+@Deprecated
 @Service
 @RequiredArgsConstructor
 public class BranchServiceImpl implements BranchService {

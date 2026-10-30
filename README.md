@@ -179,7 +179,7 @@ Authorization: Bearer <token>
 | ---- | ---- | ---- | ---- | ---- |
 | `/api/v1/auth` | `AuthController` | 8 path | **免登录** | 登录、验证码、CAS SSO、刷新、退出 |
 | `/api/v2/content` | `ContentController` | 7 path | 登录即可 | 新闻/公告/活动的只读查询，只返回已发布且在展示期内的内容 |
-| `/api/v2/branch` | `BranchController` | 3 path / 5 op | `branch_admin` | 支部增删改查；**已列入下线计划**（见下） |
+| `/api/v2/branch` | ~~`BranchController`~~ | 3 path / 5 op | `branch_admin` | **已标废弃**（#51），能力全部由 `/api/v4/admin/branches/*` 覆盖，观察一个迭代后删除 |
 | `/api/v4/admin` | `AdminController` + `AdminSignRecordController` + `AdminActivitySignupController` | 36 path / 50 op | `super_admin` | 用户、支部、角色权限、活动、新闻、公告、签到报名记录、操作日志、Excel 导入 |
 | `/api/v4/user` | `UserController` | 1 path / 2 op | 登录即可 | 个人中心：查看/编辑本人资料 |
 | `/api/v4/activities` | `ActivitySignController` + `ActivitySignupController` | 2 path / 3 op | 登录即可 | 成员签到与报名/取消（v4 前缀下按资源独立成类） |
@@ -188,7 +188,7 @@ Authorization: Bearer <token>
 
 - **历史记录**就是操作日志，统一走 `/api/v4/admin/logs/{page,stats,cleanup}`，没有独立的 `/api/v4/history` 入口。
 - **导入模板**：`GET /api/v4/admin/{users,branches}/template` 下载的列与 Swagger 描述由契约测试保证一致。
-- `/api/v2/branch` 是 `/api/v4/admin/branches/*` 的弱化实现（无分页/搜索/导入）。**新代码请使用 v4 后台接口**；v2 的下线计划与前置条件见 [docs/research/2026-10-api-versioning-contract.md](docs/research/2026-10-api-versioning-contract.md)。
+- `/api/v2/branch` 已标废弃（控制器与服务均有 `@Deprecated`，openapi 5 个 operation 标 `deprecated: true`）。**新代码一律使用 `/api/v4/admin/branches/*`**。`DeprecatedEndpointContractTest` 锁住废弃标记的完整性：v2/branch 下漏标、或 v4 被误标，测试都会红。前端盘点见 [docs/research/2026-10-api-versioning-contract.md](docs/research/2026-10-api-versioning-contract.md)。
 
 ---
 
@@ -312,6 +312,7 @@ Controller 中用 `@CurrentUser User user` 直接拿到当前登录用户（`use
 | `sql/*.sql` | `./sql/schema-verify.sh`（建库 + status 语义自检） |
 | 控制器鉴权注解 | `mvn test`（契约测试会校验角色名存在、无空壳控制器） |
 | 导入模板列 | `mvn test`（契约测试会校验 Swagger 描述与生成的 xlsx 表头一致） |
+| 接口的废弃标记 | `mvn test`（契约测试会校验 `/api/v2/branch` 全部接口双标记齐全，且 v4 不被误标） |
 
 ---
 
