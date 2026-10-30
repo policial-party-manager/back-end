@@ -422,30 +422,7 @@ paths:
   /api/v4/user/profile:
     get:
       summary: "获取个人信息"
-      description: "获取个人信息"
-      parameters:
-      - name: "username"
-        in: "query"
-        description: ""
-        required: false
-        schema:
-          type: "string"
-          nullable: false
-      - name: "role"
-        in: "query"
-        description: ""
-        required: false
-        schema:
-          type: "string"
-          nullable: false
-      - name: "userId"
-        in: "query"
-        description: ""
-        required: false
-        schema:
-          type: "integer"
-          format: "int64"
-          nullable: false
+      description: "账号 + 成员档案 + 所属支部"
       responses:
         "200":
           description: ""
@@ -461,44 +438,110 @@ paths:
                     type: "string"
                     description: ""
                   data:
-                    type: "string"
-                    description: ""
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        description: "用户id"
+                        format: "int64"
+                      username:
+                        type: "string"
+                        description: "登录用户名"
+                      status:
+                        type: "integer"
+                        description: "用户状态（1 启用 / 2 停用）"
+                      realName:
+                        type: "string"
+                        description: "姓名"
+                      studentId:
+                        type: "string"
+                        description: "学号"
+                      phone:
+                        type: "string"
+                        description: "手机号"
+                      email:
+                        type: "string"
+                        description: "邮箱"
+                      identityCardNumber:
+                        type: "string"
+                        description: "身份证号"
+                      gender:
+                        type: "string"
+                        description: "性别"
+                      college:
+                        type: "string"
+                        description: "学院"
+                      grade:
+                        type: "string"
+                        description: "年级"
+                      major:
+                        type: "string"
+                        description: "专业"
+                      className:
+                        type: "string"
+                        description: "班级"
+                      contactPerson:
+                        type: "string"
+                        description: "紧急联系人"
+                      remark:
+                        type: "string"
+                        description: "备注"
+                      branchId:
+                        type: "integer"
+                        description: "所属党支部id"
+                        format: "int64"
+                      branchName:
+                        type: "string"
+                        description: "所属党支部名称"
+                    description: "个人中心-资料响应（GET /api/v4/user/profile）"
+                description: "统一响应"
     put:
       summary: "编辑个人信息"
-      description: "编辑个人信息"
-      parameters:
-      - name: "username"
-        in: "query"
-        description: ""
-        required: false
-        schema:
-          type: "string"
-          nullable: false
-      - name: "role"
-        in: "query"
-        description: ""
-        required: false
-        schema:
-          type: "string"
-          nullable: false
-      - name: "userId"
-        in: "query"
-        description: ""
-        required: false
-        schema:
-          type: "integer"
-          format: "int64"
-          nullable: false
+      description: "部分更新：未传或空白字段保持原值；未知字段忽略；支部归属不可自助修改（由管理员维护）"
       requestBody:
         content:
           application/json:
             schema:
               type: "object"
               properties:
-                key:
-                  type: "object"
-                  properties: {}
-              description: ""
+                realName:
+                  type: "string"
+                  description: "姓名（varchar(12)）"
+                studentId:
+                  type: "string"
+                  description: "学号（varchar(10)）"
+                identityCardNumber:
+                  type: "string"
+                  description: "身份证号（varchar(18)）"
+                phone:
+                  type: "string"
+                  description: "手机号（可空；填写须为 11 位大陆号码）"
+                email:
+                  type: "string"
+                  description: "邮箱（可空；填写须为合法邮箱）"
+                gender:
+                  type: "string"
+                  description: "性别（varchar(10)）"
+                college:
+                  type: "string"
+                  description: "学院（varchar(50)）"
+                grade:
+                  type: "string"
+                  description: "年级（varchar(10)）"
+                major:
+                  type: "string"
+                  description: "专业（varchar(50)）"
+                className:
+                  type: "string"
+                  description: "班级（varchar(50)）"
+                contactPerson:
+                  type: "string"
+                  description: "紧急联系人（varchar(50)）"
+                remark:
+                  type: "string"
+                  description: "备注（varchar(500)）"
+              description: "个人中心-编辑请求（PUT /api/v4/user/profile）"
+        required: true
       responses:
         "200":
           description: ""
@@ -514,8 +557,8 @@ paths:
                     type: "string"
                     description: ""
                   data:
-                    type: "string"
-                    description: ""
+                    description: "无数据"
+                description: "统一响应"
   /api/v4/admin/users/page:
     get:
       summary: "用户分页列表"
