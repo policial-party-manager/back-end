@@ -31,7 +31,7 @@
 
 ```
 ├── sql/                                  # 数据库脚本与文档
-│   ├── databases.sql                     # 一键建库（按外键顺序 SOURCE 20 张表）
+│   ├── databases.sql                     # 一键建库（按外键顺序 SOURCE 21 张表）
 │   ├── tb_*.sql                          # 单表 DDL（20 个）
 │   ├── alter_*.sql                       # 已有环境的幂等增量脚本
 │   ├── schema-verify.sh                  # 在临时库重跑全套 DDL 的回归护栏
@@ -42,7 +42,7 @@
 ├── src/main/java/sicau/policialPartyManager/
 │   ├── PolicialPartyManagerApplication.java
 │   ├── api/
-│   │   ├── controller/                   # 7 个控制器（见下方 API 概览）
+│   │   ├── controller/                   # 9 个控制器（见下方 API 概览）
 │   │   ├── dto/                          # 请求/响应对象（Result、PageResult、各类 *Request/*Vo）
 │   │   └── handler/                      # GlobalExceptionHandler
 │   ├── config/                           # Security、MyBatis-Plus、Knife4j、CAS、异步、@CurrentUser
@@ -80,7 +80,7 @@
 mysql -u root -p < sql/databases.sql
 ```
 
-> 脚本会建库并按外键依赖顺序创建 20 张表。改过任何 `sql/tb_*.sql` 后，执行 `./sql/schema-verify.sh` 可验证整套 DDL 仍能干净建库（它会 DROP 并重建临时库 `pp_schema_verify`，不会碰业务库）。
+> 脚本会建库并按外键依赖顺序创建 21 张表。改过任何 `sql/tb_*.sql` 后，执行 `./sql/schema-verify.sh` 可验证整套 DDL 仍能干净建库（它会 DROP 并重建临时库 `pp_schema_verify`，不会碰业务库）。
 
 ### 3. 修改配置
 
@@ -173,16 +173,16 @@ Authorization: Bearer <token>
 
 ## API 概览
 
-**完整契约以 [`openapi.yaml`](openapi.yaml) 为准**（55 条 path / 72 个 operation），`doc.html` 是它的可视化版本。README 只给出模块地图，不逐条重抄——重抄必然再次落后于代码。
+**完整契约以 [`openapi.yaml`](openapi.yaml) 为准**（57 条 path / 75 个 operation），`doc.html` 是它的可视化版本。README 只给出模块地图，不逐条重抄——重抄必然再次落后于代码。
 
 | 前缀 | 控制器 | 规模 | 鉴权 | 职责 |
 | ---- | ---- | ---- | ---- | ---- |
 | `/api/v1/auth` | `AuthController` | 8 path | **免登录** | 登录、验证码、CAS SSO、刷新、退出 |
 | `/api/v2/content` | `ContentController` | 7 path | 登录即可 | 新闻/公告/活动的只读查询，只返回已发布且在展示期内的内容 |
 | `/api/v2/branch` | `BranchController` | 3 path / 5 op | `branch_admin` | 支部增删改查；**已列入下线计划**（见下） |
-| `/api/v4/admin` | `AdminController` + `AdminSignRecordController` | 35 path / 49 op | `super_admin` | 用户、支部、角色权限、活动、新闻、公告、签到记录、操作日志、Excel 导入 |
+| `/api/v4/admin` | `AdminController` + `AdminSignRecordController` + `AdminActivitySignupController` | 36 path / 50 op | `super_admin` | 用户、支部、角色权限、活动、新闻、公告、签到报名记录、操作日志、Excel 导入 |
 | `/api/v4/user` | `UserController` | 1 path / 2 op | 登录即可 | 个人中心：查看/编辑本人资料 |
-| `/api/v4/activities` | `ActivitySignController` | 1 path / 1 op | 登录即可 | 成员对活动签到（v4 前缀下按资源独立成类） |
+| `/api/v4/activities` | `ActivitySignController` + `ActivitySignupController` | 2 path / 3 op | 登录即可 | 成员签到与报名/取消（v4 前缀下按资源独立成类） |
 
 补充说明：
 
@@ -209,13 +209,13 @@ Authorization: Bearer <token>
 
 ## 数据库设计
 
-共 **20 张表**，按四个域组织。完整字段与约束见 [sql/er-diagram.md](sql/er-diagram.md)（Mermaid，可在 VS Code 预览或粘贴到 mermaid.live）。
+共 **21 张表**，按四个域组织。完整字段与约束见 [sql/er-diagram.md](sql/er-diagram.md)（Mermaid，可在 VS Code 预览或粘贴到 mermaid.live）。
 
 | 域 | 表 |
 | --- | --- |
 | 用户权限 | `tb_user`、`tb_user_detail`、`tb_user_role`、`tb_role`、`tb_role_permission` |
 | 组织与身份 | `tb_branch`、`tb_identity`、`tb_identity_change` |
-| 党建业务 | `tb_activity`、`tb_activity_detail`、`tb_activity_identity`、`tb_activity_type`、`tb_sign_record`、`tb_study`、`tb_study_record`、`tb_thought_report` |
+| 党建业务 | `tb_activity`、`tb_activity_detail`、`tb_activity_identity`、`tb_activity_signup`、`tb_activity_type`、`tb_sign_record`、`tb_study`、`tb_study_record`、`tb_thought_report` |
 | 内容与日志 | `tb_news`、`tb_notice`、`tb_notice_top`、`tb_operation` |
 
 **政治身份级别**（`tb_identity.level`）：
@@ -229,7 +229,7 @@ Authorization: Bearer <token>
 | 5 | 预备党员 | 已批准预备 |
 | 6 | 正式党员 | 已转正 |
 
-> `tb_activity_identity` 取代了早期设计里的「活动报名表」，承载活动的目标身份/年级/学院范围；对应的报名业务逻辑尚未实现。
+> `tb_activity_identity` 承载活动的目标人群范围（身份/年级/学院）；报名记录本身在 `tb_activity_signup`（身份维度校验待 #44 用户身份落库后补齐）。
 
 ---
 
@@ -317,17 +317,16 @@ Controller 中用 `@CurrentUser User user` 直接拿到当前登录用户（`use
 
 ## 待实现功能
 
-**已实现**：认证（含 CAS）、用户/支部/角色/活动/新闻/公告后台、操作日志（ES）、Excel 批量导入、个人中心查询与编辑。
+**已实现**：认证（含 CAS）、用户/支部/角色/活动/新闻/公告后台、操作日志（ES）、Excel 批量导入、个人中心查询与编辑、活动签到与报名。
 
 **尚未实现**：
 
 - [x] `tb_sign_record` — 活动签到（成员签到 + 管理员按活动查记录；location 以 WKT 落 POINT）
-- [ ] `tb_activity_signup` — 活动报名（名额校验/取消，见 #53；身份维度待 #44）
+- [x] `tb_activity_signup` — 活动报名（报名即生效、开始前可取消、名额与年级/学院校验；身份维度待 #44）
 - [ ] 二维码 / token 签到、地理围栏
 - [ ] `tb_thought_report` — 思想汇报提交与审阅流
 - [ ] `tb_study` / `tb_study_record` — 学习课程与学习记录
 - [ ] `tb_identity_change` — 政治身份变更的申请/审批链路（表已建，无业务层）
-- [ ] 活动报名：`tb_activity_identity` 已承载范围（身份/年级/学院），报名与名额校验未做
 - [ ] 短信验证码通道（结构已留，仅写日志）
 - [ ] 用户自助改密 / 忘记密码找回（目前只有管理员重置）
 - [ ] 支部管理员的数据隔离（`branch_admin` 目前只能访问 v2 支部接口，未见按支部过滤的成员数据）

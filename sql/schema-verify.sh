@@ -33,7 +33,7 @@ echo "== 重建临时库 $DB =="
 mysql_run -e "DROP DATABASE IF EXISTS \`$DB\`; CREATE DATABASE \`$DB\` DEFAULT CHARACTER SET utf8mb4;" || exit 2
 
 # 外键依赖顺序：被引用的表必须先建（单行，便于下面的 case 做成员判断）
-ORDER="tb_user tb_role tb_activity_type tb_study tb_identity tb_role_permission tb_user_role tb_branch tb_user_detail tb_activity tb_activity_detail tb_activity_identity tb_sign_record tb_study_record tb_thought_report tb_news tb_notice tb_notice_top tb_operation tb_identity_change"
+ORDER="tb_user tb_role tb_activity_type tb_study tb_identity tb_role_permission tb_user_role tb_branch tb_user_detail tb_activity tb_activity_detail tb_activity_identity tb_sign_record tb_activity_signup tb_study_record tb_thought_report tb_news tb_notice tb_notice_top tb_operation tb_identity_change"
 
 fail=0
 for t in $ORDER; do
