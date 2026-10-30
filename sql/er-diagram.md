@@ -103,7 +103,7 @@ erDiagram
 
 - 一行 = 一个用户对某活动的一次有效报名；取消即删除该行（名额随之释放）
 - `unique(activity_id, user_id)` 挡重复报名；`signup_time` 默认当前时间
-- 报名身份维度校验待接通：当前身份已由 #44 落库（`tb_user_detail.identity_id`），接通见 #53 后续
+- 报名身份维度已接通（#61）：行的 `target_identity` 与用户 `tb_user_detail.identity_id` 相等才算命中；未登记身份报名限定活动时给出「联系支部管理员提交身份变更」提示
 
 ### `tb_identity` / `tb_identity_change`（#44）
 
@@ -120,7 +120,7 @@ erDiagram
 
 - 一行代表一个用户对某活动的一次有效报名；取消即删除该行（名额随之释放）
 - `unique(activity_id, user_id)` 挡重复报名；`signup_time` 默认当前时间
-- **身份维度校验待接通**（当前身份已由 #44 落库为 `tb_user_detail.identity_id`；现按 `tb_activity_identity` 的年级/学院匹配）
+- **身份维度已接通（#61）**：`tb_activity_identity.target_identity` 与 `tb_user_detail.identity_id` 相等比较；未登记身份报名限定活动 → 400 可执行提示；行未设 target_identity 时维持年级/学院语义
 
 
 ---

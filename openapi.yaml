@@ -4483,7 +4483,7 @@ paths:
   /api/v4/activities/{activityId}/signup:
     post:
       summary: "活动报名"
-      description: "已发布且未开始的活动可报名；校验重复报名、名额（maxParticipants，空=不限）与目标人群范围（年级/学院；身份维度本期不校验）"
+      description: "已发布且未开始的活动可报名；校验重复报名、名额（maxParticipants，空=不限）与目标人群范围（年级/学院/政治身份；用户未登记身份时报可执行提示）"
       parameters:
       - name: "activityId"
         in: "path"
