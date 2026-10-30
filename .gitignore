@@ -38,3 +38,6 @@ build/
 ### VS Code ###
 .vscode/
 src/main/resources/application-secret.yaml
+
+### 本地附件存储（#33） ###
+data/uploads/
