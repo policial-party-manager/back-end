@@ -60,4 +60,10 @@ public class UserProfileVo {
 
     /** 所属党支部名称 */
     private String branchName;
+
+    /** 当前政治身份 id（tb_identity.id；null=未登记，#44） */
+    private Long identityId;
+
+    /** 当前政治身份名 */
+    private String identityName;
 }

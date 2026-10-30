@@ -50,4 +50,16 @@ SOURCE sql/tb_notice_top.sql;
 SOURCE sql/tb_operation.sql;
 SOURCE sql/tb_identity_change.sql;
 
+-- 字典播种（幂等，与 sql/alter_identity_flow.sql 同源；README「政治身份级别」为权威来源）
+INSERT INTO tb_identity (identity_name, level, role_id, description)
+VALUES
+    ('普通学生',   1, NULL, '非党员'),
+    ('入党申请人', 2, NULL, '已提交申请'),
+    ('积极分子',   3, NULL, '已确定为积极分子'),
+    ('发展对象',   4, NULL, '已确定为发展对象'),
+    ('预备党员',   5, NULL, '已批准预备'),
+    ('正式党员',   6, NULL, '已转正')
+AS new
+ON DUPLICATE KEY UPDATE tb_identity.identity_name = new.identity_name;
+
 SELECT '数据库 policial_party_manager 初始化完成（21 张表）' AS result;

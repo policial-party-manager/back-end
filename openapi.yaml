@@ -5342,8 +5342,466 @@ paths:
                         type: "number"
                         description: "平均分（两位小数；无记录为 null）"
                     description: "成员学习汇总（#32）"
+  /api/v4/admin/identities:
+    post:
+      summary: "新增身份"
+      description: "identityName 全表唯一、level 1~6；role_id 仅展示映射不参与鉴权"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                identityName:
+                  type: "string"
+                  description: "身份名（最长 20）"
+                level:
+                  type: "integer"
+                  description: "发展阶段（1~6）"
+                roleId:
+                  type: "integer"
+                  format: "int64"
+                  description: "对应角色id（仅展示映射，不参与鉴权）"
+                description:
+                  type: "string"
+                  description: "说明"
+              description: "政治身份字典新增/编辑请求（#44，超管维护）"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/IdentityVo"
+  /api/v4/admin/identities/{id}:
+    put:
+      summary: "编辑身份"
+      description: "重名（不含自身）拒绝"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                identityName:
+                  type: "string"
+                  description: "身份名（最长 20）"
+                level:
+                  type: "integer"
+                  description: "发展阶段（1~6）"
+                roleId:
+                  type: "integer"
+                  format: "int64"
+                  description: "对应角色id（仅展示映射，不参与鉴权）"
+                description:
+                  type: "string"
+                  description: "说明"
+              description: "政治身份字典新增/编辑请求（#44，超管维护）"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/IdentityVo"
+    delete:
+      summary: "删除身份"
+      description: "被用户当前身份或变更单引用时拒绝（可读 400）"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    description: "无数据"
+  /api/v2/content/identities/page:
+    get:
+      summary: "身份字典列表"
+      description: "按 level 升序；登录可读（发起变更时选择目标身份）；role_id 仅展示映射，不参与鉴权"
+      parameters:
+      - name: "page"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "1"
+      - name: "size"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "10"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      records:
+                        type: "array"
+                        description: "当前页数据"
+                        items:
+                          $ref: "#/components/schemas/IdentityVo"
+                      total:
+                        type: "integer"
+                        format: "int64"
+                        description: ""
+                      page:
+                        type: "integer"
+                        format: "int64"
+                        description: ""
+                      size:
+                        type: "integer"
+                        format: "int64"
+                        description: ""
+                    description: "通用分页返回结构"
+  /api/v4/identity-changes:
+    post:
+      summary: "发起身份变更"
+      description: "branch_admin 限本支部成员、super_admin 不限；from 取目标当前身份快照（首次登记为空）；同一用户仅允许一张待审批单；生效不会联动登录角色"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                userId:
+                  type: "integer"
+                  format: "int64"
+                  description: "目标用户id（须有成员档案）"
+                toIdentity:
+                  type: "integer"
+                  format: "int64"
+                  description: "变更后身份（tb_identity.id）"
+                reason:
+                  type: "string"
+                  description: "变更原因（可空）"
+              description: "身份变更发起请求（#44，两阶段的第一步）"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/IdentityChangeVo"
+  /api/v4/identity-changes/{id}/review:
+    post:
+      summary: "审批身份变更"
+      description: "仅 super_admin；通过=写回当前身份，驳回=现身份不动；仅待审批单可审"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                pass:
+                  type: "boolean"
+                  description: "true=通过（写回 identity_id），false=驳回"
+                remark:
+                  type: "string"
+                  description: "审批意见（最长 50，可空）"
+              description: "身份变更审批请求（#44，仅 super_admin）"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/IdentityChangeVo"
+  /api/v4/identity-changes/managed/page:
+    get:
+      summary: "我可管理的变更单分页"
+      description: "超管=全局（可按 userId/status 过滤）；支管=本支部成员的单"
+      parameters:
+      - name: "page"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "1"
+      - name: "size"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "10"
+      - name: "userId"
+        in: "query"
+        description: "仅超管生效"
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+      - name: "status"
+        in: "query"
+        description: "1 待审批 / 2 已生效 / 3 驳回（仅超管生效）"
+        required: false
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/IdentityChangeVoPage"
+  /api/v4/identity-changes/{id}:
+    get:
+      summary: "变更单详情"
+      description: "可管理范围内可见（超管全局/支管本支部）；越权统一「变更单不存在」"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/IdentityChangeVo"
+  /api/v4/user/identity-changes/mine/page:
+    get:
+      summary: "我的变更单分页"
+      description: "仅本人数据；含状态与审批意见"
+      parameters:
+      - name: "page"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "1"
+      - name: "size"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+          default: "10"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  message:
+                    type: "string"
+                    description: ""
+                  data:
+                    $ref: "#/components/schemas/IdentityChangeVoPage"
 components:
   schemas:
+    IdentityVo:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          description: "身份ID（主键，自增）"
+        identityName:
+          type: "string"
+          description: "身份名"
+        level:
+          type: "integer"
+          description: "发展阶段（1-6）"
+        roleId:
+          type: "integer"
+          format: "int64"
+          description: "对应角色id（仅展示映射，不参与鉴权）"
+        description:
+          type: "string"
+          description: "说明"
+      description: "政治身份实体\n对应数据库表：tb_identity"
+    IdentityChangeVo:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          description: ""
+        userId:
+          type: "integer"
+          format: "int64"
+          description: "目标用户id"
+        userName:
+          type: "string"
+          description: "目标用户姓名"
+        fromIdentity:
+          type: "integer"
+          format: "int64"
+          description: "变更前身份id（首次登记为 null）"
+        fromIdentityName:
+          type: "string"
+          description: "变更前身份名"
+        toIdentity:
+          type: "integer"
+          format: "int64"
+          description: "变更后身份id"
+        toIdentityName:
+          type: "string"
+          description: "变更后身份名"
+        operatorId:
+          type: "integer"
+          format: "int64"
+          description: "发起操作者id"
+        operatorName:
+          type: "string"
+          description: "发起操作者姓名"
+        reason:
+          type: "string"
+          description: "变更原因"
+        status:
+          type: "integer"
+          description: "单据状态：1 待审批 / 2 已生效 / 3 驳回"
+        statusName:
+          type: "string"
+          description: "状态中文名"
+        reviewerId:
+          type: "integer"
+          format: "int64"
+          description: "审批人id（未审批为 null）"
+        reviewerName:
+          type: "string"
+          description: "审批人姓名"
+        reviewTime:
+          type: "string"
+          format: "date-time"
+          description: "审批时间"
+        reviewRemark:
+          type: "string"
+          description: "审批意见"
+        createTime:
+          type: "string"
+          format: "date-time"
+          description: "发起时间"
+      description: "身份变更单视图（内嵌人物/身份/操作者/审批人姓名）"
+    IdentityChangeVoPage:
+      type: "object"
+      properties:
+        records:
+          type: "array"
+          description: "当前页数据"
+          items:
+            $ref: "#/components/schemas/IdentityChangeVo"
+        total:
+          type: "integer"
+          format: "int64"
+          description: "总记录数"
+        page:
+          type: "integer"
+          format: "int64"
+          description: "当前页码（从 1 开始）"
+        size:
+          type: "integer"
+          format: "int64"
+          description: "每页大小"
+      description: "通用分页返回结构"
     StudyRecordVo:
       type: "object"
       properties:

@@ -85,4 +85,9 @@ public class UserDetail {
      * 备注
      */
     private String remark;
+
+    /**
+     * 当前政治身份（FK tb_identity；NULL=未登记；身份变更审批生效时写回）
+     */
+    private Long identityId;
 }

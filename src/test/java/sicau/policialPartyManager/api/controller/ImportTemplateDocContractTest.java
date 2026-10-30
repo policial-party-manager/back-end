@@ -38,7 +38,7 @@ class ImportTemplateDocContractTest {
 
     @Test
     void userTemplateDocListsEveryColumn() throws Exception {
-        byte[] xlsx = new AdminUserServiceImpl(null, null, null, null, null, null).template();
+        byte[] xlsx = new AdminUserServiceImpl(null, null, null, null, null, null, null).template();
         assertDocCoversTemplate(
                 AdminController.class.getMethod("downloadUserTemplate", HttpServletResponse.class),
                 xlsx);

@@ -22,6 +22,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserDetailMapper userDetailMapper;
     private final BranchMapper branchMapper;
+    private final sicau.policialPartyManager.repository.IdentityMapper identityMapper;
 
     @Override
     public UserProfileVo profile(User user) {
@@ -51,6 +52,12 @@ public class UserServiceImpl implements UserService {
             if (detail.getBranchId() != null) {
                 Branch branch = branchMapper.selectById(detail.getBranchId());
                 vo.setBranchName(branch == null ? null : branch.getBranchName());
+            }
+            vo.setIdentityId(detail.getIdentityId());
+            if (detail.getIdentityId() != null) {
+                sicau.policialPartyManager.model.entity.Identity identity =
+                        identityMapper.selectById(detail.getIdentityId());
+                vo.setIdentityName(identity == null ? null : identity.getIdentityName());
             }
         }
         return vo;
