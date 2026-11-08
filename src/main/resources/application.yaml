@@ -91,3 +91,7 @@ frontend:
 
 server:
   port: 8080
+
+app:
+  sign:
+    qr-ttl: 60
