@@ -5443,6 +5443,496 @@ paths:
                     description: ""
                   data:
                     $ref: "#/components/schemas/IdentityChangeVoPage"
+  /api/v4/members/page:
+    get:
+      tags:
+        - "成员管理（支委）"
+      summary: "成员分页（按操作者范围）"
+      description: "超管全院；支委限本支部。支持 keyword 与年级/专业/学院/政治身份筛选"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/members/{id}:
+    get:
+      tags:
+        - "成员管理（支委）"
+      summary: "成员详情（按操作者范围）"
+      description: "越权与真不存在同文案"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/members/{id}/contact:
+    put:
+      tags:
+        - "成员管理（支委）"
+      summary: "修改成员联系方式"
+      description: "仅手机号/邮箱/备注；部分更新，未传字段不动，空串清空"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/members/export:
+    get:
+      tags:
+        - "成员管理（支委）"
+      summary: "导出成员名单（xlsx）"
+      description: "受与列表相同的筛选条件约束"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/members/{userId}/mentors:
+    get:
+      tags:
+        - "培养域"
+      summary: "查看成员当前培养联系人"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+    post:
+      tags:
+        - "培养域"
+      summary: "指派培养联系人"
+      description: "每人最多 2 名在职联系人；已存在则幂等"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/members/{userId}/mentors/{mentorId}:
+    delete:
+      tags:
+        - "培养域"
+      summary: "移除培养联系人"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/members/{userId}/mentors/batch:
+    post:
+      tags:
+        - "培养域"
+      summary: "批量指派培养联系人"
+      description: "逐条成功；单次最多 200 条"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/members/{userId}/mentees:
+    get:
+      tags:
+        - "培养域"
+      summary: "按培养联系人反查带教成员"
+      description: "支委只返回本支部成员"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/members/{userId}/materials:
+    get:
+      tags:
+        - "培养域"
+      summary: "成员培养材料列表"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+    post:
+      tags:
+        - "培养域"
+      summary: "登记培养材料"
+      description: "先调 /api/v4/uploads 拿到 file: 路径，再用本接口登记归属与类型"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/members/{userId}/materials/{materialId}:
+    delete:
+      tags:
+        - "培养域"
+      summary: "删除培养材料（软删除）"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/admin/users/batch/status:
+    post:
+      tags:
+        - "成员批量操作"
+      summary: "批量停用/恢复"
+      description: "status：1 启用 / 2 停用；单次最多 200 条；逐条返回成功与失败明细"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/admin/users/batch/branch:
+    post:
+      tags:
+        - "成员批量操作"
+      summary: "批量调整所属支部"
+      description: "仅超级管理员；单次最多 200 条"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/admin/activities/{activityId}/leaves:
+    post:
+      tags:
+        - "活动考勤"
+      summary: "录入请假"
+      description: "同一成员同一活动只保留一条生效记录；重复录入即更新理由"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/admin/activities/{activityId}/leaves/{userId}:
+    delete:
+      tags:
+        - "活动考勤"
+      summary: "撤销请假"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/admin/activities/{activityId}/attendance:
+    get:
+      tags:
+        - "活动考勤"
+      summary: "考勤统计"
+      description: "签到/请假/缺席三张名单 + 参与率；考勤四态为正常签到/迟到/请假/缺席；应到不可界定（活动无参与范围）时缺席名单为空、参与率为 null"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/activities/{activityId}/sign-qr:
+    get:
+      tags:
+        - "二维码签到"
+      summary: "生成/获取当前签到二维码"
+      description: "返回 token 与过期秒数；同一窗口内复用同一 token，过期后自动轮换"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/activities/{activityId}/sign-by-qr:
+    post:
+      tags:
+        - "二维码签到"
+      summary: "扫码签到"
+      description: "携带当前有效 token；过期或伪造被拒。重复签到返回「您已完成签到」"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/activities/{activityId}/signups/page:
+    get:
+      tags:
+        - "活动域（支委）"
+      summary: "活动报名记录分页（按操作者范围）"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/activities/{activityId}/signs/page:
+    get:
+      tags:
+        - "活动域（支委）"
+      summary: "活动签到记录分页（按操作者范围）"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/cultivation-profiles/{userId}:
+    get:
+      tags:
+        - "电子培养档案"
+      summary: "查询成员完整培养档案"
+      description: "基本信息 + 培养联系人 + 身份变更历史 + 思想汇报 + 活动签到/请假 + 学习记录 + 培养材料 + 统计摘要；各区块无数据时返回空集合"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/cultivation-profiles/mine:
+    get:
+      tags:
+        - "电子培养档案"
+      summary: "查询自己的完整培养档案"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/statistics/dashboard:
+    get:
+      tags:
+        - "首页统计"
+      summary: "首页待办与阶段分布"
+      description: "待审核思想汇报数、待审批身份变更数（支委限本支部），以及各政治身份人数分布"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/statistics/distribution:
+    get:
+      tags:
+        - "首页统计"
+      summary: "阶段分布（按维度切分）"
+      description: "dimension 可选 college / major / className / grade，缺省 college"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
 components:
   schemas:
     IdentityVo:
