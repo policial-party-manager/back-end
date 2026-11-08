@@ -51,8 +51,14 @@ public class AdminBranchServiceImpl implements AdminBranchService {
         if (user == null) {
             throw new IllegalArgumentException("书记用户不存在");
         }
-        Role branchAdmin = roleMapper.selectOne(new LambdaQueryWrapper<Role>()
-                .eq(Role::getRoleName, "branch_admin"));
+        // roleName 在库里存的是 ROLE_BRANCH_ADMIN（带前缀、全大写），
+        // 不能用 branch_admin 精确匹配——必须规范化后比较。
+        Role branchAdmin = roleMapper.selectList(new LambdaQueryWrapper<Role>())
+                .stream()
+                .filter(r -> r.getRoleName() != null
+                        && normalizeRoleCode(r.getRoleName()).equals("branch_admin"))
+                .findFirst()
+                .orElse(null);
         if (branchAdmin == null) {
             throw new IllegalArgumentException("系统缺少 branch_admin 角色，无法指定书记");
         }
@@ -62,6 +68,12 @@ public class AdminBranchServiceImpl implements AdminBranchService {
         if (n == null || n == 0) {
             throw new IllegalArgumentException("书记必须是持有支委（branch_admin）角色的用户");
         }
+    }
+
+    /** ROLE_BRANCH_ADMIN / branch_admin / Role_Branch_Admin → branch_admin */
+    private static String normalizeRoleCode(String roleName) {
+        String s = roleName.trim().toLowerCase();
+        return s.startsWith("role_") ? s.substring("role_".length()) : s;
     }
 
     @Override

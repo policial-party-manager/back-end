@@ -5874,7 +5874,7 @@ paths:
                     type: "string"
                   data:
                     type: "object"
-  /api/v4/cultivation-profiles/mine:
+  /api/v4/cultivation-profiles/me:
     get:
       tags:
         - "电子培养档案"
