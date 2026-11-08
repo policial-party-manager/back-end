@@ -40,6 +40,7 @@ public class ScopedMemberServiceImpl {
     private final UserMapper userMapper;
     private final UserDetailMapper userDetailMapper;
     private final BranchScopeService branchScopeService;
+    private final sicau.policialPartyManager.log.OperationLogPublisher logPublisher;
 
     private static final String[] EXPORT_HEADERS = {
             "学号", "姓名", "手机号", "邮箱", "学院", "年级", "专业", "班级", "备注"};
@@ -94,6 +95,8 @@ public class ScopedMemberServiceImpl {
         if (detail == null) {
             throw new IllegalArgumentException("用户不存在");
         }
+        // #74：改动前后快照（只在实际变化时记录）
+        String before = snapshotContact(detail);
         if (request.getPhone() != null) {
             String v = trimToNull(request.getPhone());
             ensureUnique(id, v, null, "手机号已被使用");
@@ -108,6 +111,24 @@ public class ScopedMemberServiceImpl {
             detail.setRemark(trimToNull(request.getRemark()));
         }
         userDetailMapper.updateById(detail);
+        String after = snapshotContact(detail);
+        if (!after.equals(before)) {
+            logPublisher.dataChange("成员管理", "修改联系方式", id, before, after);
+        }
+    }
+
+    /** 快照只含本次可改的字段，避免把无关字段的差异误报成变更。 */
+    private String snapshotContact(UserDetail d) {
+        return "{\"phone\":" + json(d.getPhone())
+                + ",\"email\":" + json(d.getEmail())
+                + ",\"remark\":" + json(d.getRemark()) + "}";
+    }
+
+    private String json(String v) {
+        if (v == null) {
+            return "null";
+        }
+        return "\"" + v.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     public byte[] exportScoped(sicau.policialPartyManager.model.records.User operator, String keyword, String grade, String major,

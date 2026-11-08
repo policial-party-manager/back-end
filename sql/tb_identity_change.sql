@@ -13,7 +13,7 @@ create table tb_identity_change
     review_remark varchar(50)                          null comment '审批意见',
     create_time   timestamp  default CURRENT_TIMESTAMP not null comment '发起时间',
     constraint chk_identity_change_status
-        check (`status` in (1, 2, 3)),
+        check (`status` in (0, 1, 2, 3)),
     constraint tb_identity_change_tb_identity_id_fk
         foreign key (from_identity) references tb_identity (id),
     constraint tb_identity_change_tb_identity_id_fk_2

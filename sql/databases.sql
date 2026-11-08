@@ -49,7 +49,6 @@ SOURCE sql/tb_cultivation_material.sql;
 SOURCE sql/tb_news.sql;
 SOURCE sql/tb_notice.sql;
 SOURCE sql/tb_notice_top.sql;
-SOURCE sql/tb_operation.sql;
 SOURCE sql/tb_identity_change.sql;
 
 -- 字典播种（幂等，与 sql/alter_identity_flow.sql 同源；README「政治身份级别」为权威来源）
