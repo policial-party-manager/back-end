@@ -43,9 +43,38 @@ class SignRecordServiceImplTest {
     private ActivityDetailMapper activityDetailMapper;
     @Mock
     private ActivityTypeMapper activityTypeMapper;
+    @Mock
+    private sicau.policialPartyManager.service.ActivityScopeService activityScopeService;
 
     @InjectMocks
     private SignRecordServiceImpl service;
+
+    @Test
+    void outOfScopeUserIsRejectedBeforeInsert() {
+        // #77：不属于参与范围的人签到必须被拒，且不得写入签到记录
+        when(activityMapper.selectById(1L)).thenReturn(activity);
+        when(activityDetailMapper.selectById(1L)).thenReturn(detail);
+        when(activityTypeMapper.selectById(7L)).thenReturn(null);
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("您不符合该活动的报名范围（年级/学院/政治身份）"))
+                .when(activityScopeService).requireEligible(1L, 42L);
+
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> service.sign(request, 42L));
+        assertTrue(e.getMessage().contains("范围"), e.getMessage());
+        verify(signRecordMapper, never()).insert(any(sicau.policialPartyManager.model.entity.SignRecord.class));
+    }
+
+    @Test
+    void scopeIsCheckedWithActivityAndUserIds() {
+        when(activityMapper.selectById(1L)).thenReturn(activity);
+        when(activityDetailMapper.selectById(1L)).thenReturn(detail);
+        when(activityTypeMapper.selectById(7L)).thenReturn(null);
+        when(signRecordMapper.selectCount(any())).thenReturn(0L);
+
+        service.sign(request, 42L);
+
+        verify(activityScopeService).requireEligible(1L, 42L);
+    }
 
     private Activity activity;
     private ActivityDetail detail;

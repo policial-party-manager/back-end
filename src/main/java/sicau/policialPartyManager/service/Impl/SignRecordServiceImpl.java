@@ -16,6 +16,7 @@ import sicau.policialPartyManager.repository.ActivityDetailMapper;
 import sicau.policialPartyManager.repository.ActivityMapper;
 import sicau.policialPartyManager.repository.ActivityTypeMapper;
 import sicau.policialPartyManager.repository.SignRecordMapper;
+import sicau.policialPartyManager.service.ActivityScopeService;
 import sicau.policialPartyManager.service.SignRecordService;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ public class SignRecordServiceImpl implements SignRecordService {
     private final ActivityMapper activityMapper;
     private final ActivityDetailMapper activityDetailMapper;
     private final ActivityTypeMapper activityTypeMapper;
+    private final ActivityScopeService activityScopeService;
 
     @Override
     @Transactional
@@ -58,6 +60,9 @@ public class SignRecordServiceImpl implements SignRecordService {
                 throw new IllegalArgumentException("该活动无需签到");
             }
         }
+
+        // #77 第四项校验：必须属于活动的参与范围（口径与报名侧一致）
+        activityScopeService.requireEligible(activityId, userId);
 
         // 重复签到（应用层先查 + 数据库唯一约束兜底）
         Long existing = signRecordMapper.selectCount(new LambdaQueryWrapper<SignRecord>()

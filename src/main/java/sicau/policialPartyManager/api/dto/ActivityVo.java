@@ -51,4 +51,22 @@ public class ActivityVo {
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
+
+    /**
+     * 参与范围（#76）。空集合表示「全场开放」；
+     * 非空时每行代表一个目标人群组合，命中任意一行即属于范围。
+     */
+    private java.util.List<ScopeRow> scopes;
+
+    /** 应到人数（#76）：参与范围匹配到的成员数；无范围行时为 null（全场开放，应到不可界定） */
+    private Integer expectedCount;
+
+    /** 参与范围单行 */
+    @lombok.Data
+    public static class ScopeRow {
+        private Long targetIdentity;
+        private String targetIdentityName;
+        private Integer grade;
+        private String college;
+    }
 }

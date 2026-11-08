@@ -4,7 +4,7 @@ create table tb_activity_identity
         primary key,
     activity_id     int         not null comment '活动id',
     target_identity int         not null comment '目标身份',
-    grade           int         not null comment '年级',
+    grade int null comment '年级',
     college         varchar(10) null comment '学院',
     constraint tb_activity_identity_tb_activity_id_fk
         foreign key (activity_id) references tb_activity (id),
