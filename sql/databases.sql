@@ -42,6 +42,8 @@ SOURCE sql/tb_activity_signup.sql;
 -- 五、学习与汇报
 SOURCE sql/tb_study_record.sql;
 SOURCE sql/tb_thought_report.sql;
+SOURCE sql/tb_user_mentor.sql;
+SOURCE sql/tb_cultivation_material.sql;
 
 -- 六、内容与日志
 SOURCE sql/tb_news.sql;
