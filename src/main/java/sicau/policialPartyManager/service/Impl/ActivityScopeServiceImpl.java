@@ -84,14 +84,23 @@ public class ActivityScopeServiceImpl implements ActivityScopeService {
             // 无范围行 = 全场开放，应到不可界定
             return null;
         }
+        return expectedUserIds(activityId).size();
+    }
+
+    @Override
+    public java.util.List<Long> expectedUserIds(Long activityId) {
+        List<ActivityIdentity> rows = rowsOf(activityId);
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        if (rows == null || rows.isEmpty()) {
+            return ids;
+        }
         List<UserDetail> all = userDetailMapper.selectList(null);
-        int count = 0;
         for (UserDetail user : all) {
             if (matchesAnyRow(rows, user)) {
-                count++;
+                ids.add(user.getUserId());
             }
         }
-        return count;
+        return ids;
     }
 
     /** 与 requireEligible 完全相同的匹配逻辑，但作用在「无差别遍历成员」场景。 */

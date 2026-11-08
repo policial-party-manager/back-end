@@ -38,6 +38,7 @@ SOURCE sql/tb_activity_detail.sql;
 SOURCE sql/tb_activity_identity.sql;
 SOURCE sql/tb_sign_record.sql;
 SOURCE sql/tb_activity_signup.sql;
+SOURCE sql/tb_activity_leave.sql;
 
 -- 五、学习与汇报
 SOURCE sql/tb_study_record.sql;

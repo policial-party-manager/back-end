@@ -33,4 +33,10 @@ public interface ActivityScopeService {
      * 应到人数：参与范围匹配到的成员总数；活动无范围行时返回 null（表示「全场开放、应到不可界定」）。
      */
     Integer expectedCount(Long activityId);
+
+    /**
+     * 应到人员清单（参与范围匹配到的成员 id）。活动无范围行时返回空列表。
+     * <p>供考勤统计推算缺席名单使用。
+     */
+    java.util.List<Long> expectedUserIds(Long activityId);
 }
