@@ -5933,6 +5933,124 @@ paths:
                     type: "string"
                   data:
                     type: "object"
+  /api/v4/cultivation-profiles/mine:
+    get:
+      tags:
+        - "电子培养档案"
+      summary: "查询自己的完整培养档案"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/activities:
+    post:
+      tags:
+        - "活动域（支委）"
+      summary: "创建活动（支委）"
+      description: "支委创建的活动强制归属本支部；超管可指定任意支部"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/activities/{id}:
+    put:
+      tags:
+        - "活动域（支委）"
+      summary: "编辑活动（支委）"
+      description: "支委只能编辑本支部、且尚未开始的活动；已开始或跨支部按「活动不存在」"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/activities/{activityId}:
+    get:
+      tags:
+        - "活动域（支委）"
+      summary: "活动详情（按操作者范围）"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/activities/{activityId}/copy:
+    post:
+      tags:
+        - "活动域（支委）"
+      summary: "复制活动"
+      description: "把上一期活动复制成新草稿：主体/详情/参与范围一并复制，时间整体后移；不复制签到、报名与请假记录"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
+  /api/v4/activities/{activityId}/signs/export:
+    get:
+      tags:
+        - "活动域（支委）"
+      summary: "导出签到名单（xlsx）"
+      description: "支委限本支部活动；含签到时间与考勤四态"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  message:
+                    type: "string"
+                  data:
+                    type: "object"
 components:
   schemas:
     IdentityVo:

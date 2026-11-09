@@ -173,7 +173,7 @@ Authorization: Bearer <token>
 
 ## API 概览
 
-**完整契约以 [`openapi.yaml`](openapi.yaml) 为准**（101 条 path），`doc.html` 是它的可视化版本。README 只给出模块地图，不逐条重抄——重抄必然再次落后于代码。
+**完整契约以 [`openapi.yaml`](openapi.yaml) 为准**（107 条 path），`doc.html` 是它的可视化版本。README 只给出模块地图，不逐条重抄——重抄必然再次落后于代码。
 
 | 前缀 | 控制器 | 规模 | 鉴权 | 职责 |
 | ---- | ---- | ---- | ---- | ---- |

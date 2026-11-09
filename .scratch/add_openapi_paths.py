@@ -53,6 +53,15 @@ NEW = [
      "待审核思想汇报数、待审批身份变更数（支委限本支部），以及各政治身份人数分布", "首页统计"),
     ("/api/v4/statistics/distribution", "get", "阶段分布（按维度切分）",
      "dimension 可选 college / major / className / grade，缺省 college", "首页统计"),
+    ("/api/v4/activities", "post", "创建活动（支委）",
+     "支委创建的活动强制归属本支部；超管可指定任意支部", "活动域（支委）"),
+    ("/api/v4/activities/{id}", "put", "编辑活动（支委）",
+     "支委只能编辑本支部、且尚未开始的活动；已开始或跨支部按「活动不存在」", "活动域（支委）"),
+    ("/api/v4/activities/{activityId}", "get", "活动详情（按操作者范围）", "", "活动域（支委）"),
+    ("/api/v4/activities/{activityId}/copy", "post", "复制活动",
+     "把上一期活动复制成新草稿：主体/详情/参与范围一并复制，时间整体后移；不复制签到、报名与请假记录", "活动域（支委）"),
+    ("/api/v4/activities/{activityId}/signs/export", "get", "导出签到名单（xlsx）",
+     "支委限本支部活动；含签到时间与考勤四态", "活动域（支委）"),
 ]
 
 

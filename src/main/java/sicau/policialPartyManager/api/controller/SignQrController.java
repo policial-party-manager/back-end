@@ -17,13 +17,17 @@ import sicau.policialPartyManager.api.dto.SignInRequest;
 import sicau.policialPartyManager.config.CurrentUser;
 import sicau.policialPartyManager.model.entity.SignRecord;
 import sicau.policialPartyManager.model.records.User;
+import sicau.policialPartyManager.service.Impl.ActivityScopeGuard;
 import sicau.policialPartyManager.service.Impl.SignQrTokenService;
 import sicau.policialPartyManager.service.SignRecordService;
 
 /**
- * 二维码签到（#79）。
+ * 签到二维码（#79 / #68 补齐）。
  * <p>支委/超管生成时效二维码，成员扫码完成签到。token 默认 60 秒失效，
  * 一张有效二维码可被现场所有参与者扫——它证明「此刻在场」，不是一人一码。
+ * <p><b>签发侧必须鉴权</b>：只有管理侧能生成，且支委限本支部活动。
+ * 否则普通成员可自造签到码，或支委为其他支部活动签发。
+ * <p>扫码签到侧对全部登录成员开放（随身携带有效 token 即是授权）。
  * <p>不做地理围栏。
  */
 @Tag(name = "二维码签到", description = "生成时效签到码与扫码签到")
@@ -34,11 +38,15 @@ public class SignQrController {
 
     private final SignQrTokenService tokenService;
     private final SignRecordService signRecordService;
+    private final ActivityScopeGuard activityScopeGuard;
 
     @Operation(summary = "生成/获取当前签到二维码",
-            description = "返回 token 与过期秒数；同一窗口内复用同一 token，过期后自动轮换")
+            description = "仅支委与超管；支委限本支部活动。返回 token 与过期秒数；"
+                    + "同一窗口内复用同一 token，过期后自动轮换")
     @GetMapping("/{activityId}/sign-qr")
     public Result<QrVo> issue(@CurrentUser User operator, @PathVariable Long activityId) {
+        // 越权防线：普通成员一律拒绝；支委只能为本支部活动签发
+        activityScopeGuard.requireManageable(operator, activityId);
         return Result.ok(new QrVo(tokenService.issue(activityId), tokenService.ttlSeconds()));
     }
 

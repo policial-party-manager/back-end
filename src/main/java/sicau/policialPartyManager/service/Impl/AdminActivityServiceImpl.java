@@ -42,6 +42,7 @@ public class AdminActivityServiceImpl implements AdminActivityService {
     private final BranchMapper branchMapper;
     private final ActivityIdentityMapper activityIdentityMapper;
     private final sicau.policialPartyManager.service.ActivityScopeService activityScopeService;
+    private final sicau.policialPartyManager.service.BranchScopeService branchScopeService;
 
     /**
      * 写入参与范围（#76）。
@@ -160,6 +161,51 @@ public class AdminActivityServiceImpl implements AdminActivityService {
         }
         activityDetailMapper.deleteById(id);
         activityMapper.deleteById(id);
+    }
+
+    // ---------- 带数据范围的写操作（#71 / #68 补齐） ----------
+
+    @Override
+    public void createActivityScoped(sicau.policialPartyManager.model.records.User operator,
+                                     ActivitySaveRequest request) {
+        if (!branchScopeService.isSuperAdmin(operator) && !branchScopeService.isBranchAdmin(operator)) {
+            throw new org.springframework.security.access.AccessDeniedException("无权创建活动");
+        }
+        if (branchScopeService.isBranchAdmin(operator)) {
+            Long mine = branchScopeService.branchIdOf(operator);
+            if (mine == null) {
+                throw new IllegalArgumentException("您尚未归属任何党支部，请联系管理员");
+            }
+            // 支委创建的活动强制归属本支部：忽略请求里指定的其他支部
+            request.setBranchId(mine);
+        }
+        createActivity(request, operator.userId());
+    }
+
+    @Override
+    public void updateActivityScoped(sicau.policialPartyManager.model.records.User operator,
+                                     Long id, ActivitySaveRequest request) {
+        if (!branchScopeService.isSuperAdmin(operator) && !branchScopeService.isBranchAdmin(operator)) {
+            throw new org.springframework.security.access.AccessDeniedException("无权编辑活动");
+        }
+        Activity activity = activityMapper.selectById(id);
+        if (activity == null) {
+            throw new IllegalArgumentException("活动不存在");
+        }
+        if (branchScopeService.isBranchAdmin(operator)) {
+            Long mine = branchScopeService.branchIdOf(operator);
+            if (mine == null || activity.getBranchId() == null || !mine.equals(activity.getBranchId())) {
+                throw new IllegalArgumentException("活动不存在");
+            }
+            // 票面验收判据：支委只能改「尚未开始」的活动
+            if (activity.getStartTime() != null
+                    && java.time.LocalDateTime.now().isAfter(activity.getStartTime())) {
+                throw new IllegalArgumentException("活动已开始，无法编辑");
+            }
+            // 支委不得把活动挪到别的支部
+            request.setBranchId(mine);
+        }
+        updateActivity(id, request, operator.userId());
     }
 
     @Override
