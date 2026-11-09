@@ -360,6 +360,7 @@ Controller 中用 `@CurrentUser User user` 直接拿到当前登录用户（`use
 | --- | --- |
 | [`openapi.yaml`](openapi.yaml) | 接口契约（唯一权威） |
 | [`sql/er-diagram.md`](sql/er-diagram.md) | 数据库 ER 与关键约束 |
+| [`docs/adr/`](docs/adr/) | 架构决策记录（含 spec #68 的三处有意实现偏离） |
 | [`docs/agents/`](docs/agents/) | 技能套件配置：issue tracker、triage 标签、域文档布局 |
 | [`docs/research/`](docs/research/) | 调研笔记（API 版本与契约） |
 | [`AGENTS.md`](AGENTS.md) | 给 AI 协作代理的入口说明 |
