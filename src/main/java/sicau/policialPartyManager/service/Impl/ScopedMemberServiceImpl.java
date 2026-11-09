@@ -84,6 +84,22 @@ public class ScopedMemberServiceImpl {
         return buildVos(List.of(user)).get(0);
     }
 
+    /**
+     * 读成员基本信息，<b>不做范围校验</b>（#80 / spec 故事 60）。
+     * <p>仅供「调用方已自行判定过范围」的场景使用——目前唯一调用方是
+     * {@link CultivationProfileServiceImpl}：它已按「超管不限 / 支委限本支部 /
+     * 普通成员限本人」判过，若这里再走一次 {@code requireManageableUser}，
+     * 普通成员看自己的档案会被误挡。
+     * <p>不要在新代码里直接用它绕过鉴权。
+     */
+    public UserVo getUserForProfile(Long id) {
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        return buildVos(List.of(user)).get(0);
+    }
+
     @Transactional
     public void updateContactScoped(sicau.policialPartyManager.model.records.User operator, Long id, MemberProfileUpdateRequest request) {
         branchScopeService.requireManageableUser(operator, id);

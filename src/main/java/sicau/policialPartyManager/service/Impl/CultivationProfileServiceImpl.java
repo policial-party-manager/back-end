@@ -55,7 +55,9 @@ public class CultivationProfileServiceImpl {
             throw new IllegalArgumentException("用户不存在");
         }
 
-        UserVo basic = scopedMemberService.getUserScoped(operator, userId);
+        // 范围已在上方判定完毕。这里不能再走 getUserScoped——
+        // 它内部对非支委无条件抛「用户不存在」，会把「普通成员看自己」也挡掉（spec 故事 60）。
+        UserVo basic = scopedMemberService.getUserForProfile(userId);
 
         CultivationProfileVo vo = new CultivationProfileVo();
         vo.setBasic(basic);
