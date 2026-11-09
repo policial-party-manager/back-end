@@ -3,10 +3,6 @@ package sicau.policialPartyManager.service.Impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -18,9 +14,9 @@ import sicau.policialPartyManager.model.entity.User;
 import sicau.policialPartyManager.model.entity.UserDetail;
 import sicau.policialPartyManager.repository.UserDetailMapper;
 import sicau.policialPartyManager.repository.UserMapper;
+import sicau.policialPartyManager.utils.ExcelUtil;
 import sicau.policialPartyManager.service.BranchScopeService;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -306,36 +302,23 @@ public class ScopedMemberServiceImpl {
     }
 
     private byte[] toWorkbook(List<UserVo> rows) {
-        try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            Sheet sheet = wb.createSheet("成员名单");
-            Row header = sheet.createRow(0);
-            for (int i = 0; i < EXPORT_HEADERS.length; i++) {
-                header.createCell(i).setCellValue(EXPORT_HEADERS[i]);
-            }
-            int r = 1;
-            for (UserVo vo : rows) {
-                Row row = sheet.createRow(r++);
-                set(row, 0, vo.getStudentId());
-                set(row, 1, vo.getRealName());
-                set(row, 2, vo.getPhone());
-                set(row, 3, vo.getEmail());
-                set(row, 4, vo.getCollege());
-                set(row, 5, vo.getGrade());
-                set(row, 6, vo.getMajor());
-                set(row, 7, vo.getClassName());
-                set(row, 8, vo.getRemark());
-            }
-            wb.write(out);
-            return out.toByteArray();
-        } catch (Exception e) {
-            throw new IllegalStateException("导出失败", e);
+        List<String[]> data = new ArrayList<>();
+        for (UserVo vo : rows) {
+            data.add(new String[]{
+                    vo.getStudentId(),
+                    vo.getRealName(),
+                    vo.getPhone(),
+                    vo.getEmail(),
+                    vo.getCollege(),
+                    vo.getGrade(),
+                    vo.getMajor(),
+                    vo.getClassName(),
+                    vo.getRemark()
+            });
         }
+        return ExcelUtil.createSheet("成员名单", EXPORT_HEADERS, data);
     }
 
-    private void set(Row row, int idx, String v) {
-        Cell c = row.createCell(idx);
-        c.setCellValue(v == null ? "" : v);
-    }
 
     private String trimToNull(String v) {
         if (v == null) {
