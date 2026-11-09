@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import sicau.policialPartyManager.api.dto.ActivityVo;
 import sicau.policialPartyManager.api.dto.PageResult;
 import sicau.policialPartyManager.api.dto.Result;
+import sicau.policialPartyManager.config.CurrentUser;
+import sicau.policialPartyManager.model.records.User;
 import sicau.policialPartyManager.model.entity.ActivityType;
 import sicau.policialPartyManager.model.entity.News;
 import sicau.policialPartyManager.model.entity.Notice;
@@ -55,14 +57,21 @@ public class ContentController {
         return Result.ok(contentService.getNotice(id));
     }
 
-    @Operation(summary = "活动列表", description = "仅已发布活动（status=1）；可按支部/类型过滤")
+    @Operation(summary = "活动列表",
+            description = "仅已发布活动（status=1）；可按支部/类型过滤。"
+                    + "传 onlyEligible=true 时只返回当前用户符合参与范围的活动（#68-L4）")
     @GetMapping("/activities/page")
-    public Result<PageResult<ActivityVo>> pageActivities(@RequestParam(defaultValue = "1") long page,
-                                                         @RequestParam(defaultValue = "10") long size,
-                                                         @RequestParam(required = false) String keyword,
-                                                         @RequestParam(required = false) Long branchId,
-                                                         @RequestParam(required = false) Integer type) {
-        return Result.ok(contentService.pageActivities(page, size, keyword, branchId, type));
+    public Result<PageResult<ActivityVo>> pageActivities(
+            @RequestParam(defaultValue = "1") long page,
+            @RequestParam(defaultValue = "10") long size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) Integer type,
+            @RequestParam(defaultValue = "false") boolean onlyEligible,
+            @CurrentUser User currentUser) {
+        return Result.ok(contentService.pageActivities(
+                page, size, keyword, branchId, type,
+                onlyEligible ? currentUser.userId() : null));
     }
 
     @Operation(summary = "活动详情", description = "含封面/简介/地点/人数上限等（仅已发布）")

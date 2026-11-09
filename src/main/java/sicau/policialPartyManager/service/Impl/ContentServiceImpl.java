@@ -44,6 +44,8 @@ public class ContentServiceImpl implements ContentService {
     private final ActivityDetailMapper activityDetailMapper;
     private final ActivityTypeMapper activityTypeMapper;
     private final BranchMapper branchMapper;
+    /** #68-L4：活动列表按参与范围过滤 */
+    private final sicau.policialPartyManager.service.ActivityScopeService activityScopeService;
 
     @Override
     public PageResult<News> pageNews(long page, long size, String keyword, String type) {
@@ -93,7 +95,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public PageResult<ActivityVo> pageActivities(long page, long size, String keyword, Long branchId, Integer type) {
+    public PageResult<ActivityVo> pageActivities(long page, long size, String keyword, Long branchId, Integer type,
+                                                 Long forUserId) {
         long safePage = safePage(page);
         long safeSize = safeSize(size);
 
@@ -120,6 +123,16 @@ public class ContentServiceImpl implements ContentService {
         wrapper.orderByDesc(Activity::getStartTime).orderByDesc(Activity::getId);
         Page<Activity> result = activityMapper.selectPage(new Page<>(safePage, safeSize), wrapper);
         List<ActivityVo> vos = buildVos(result.getRecords());
+        // #68-L4：普通成员只想看到自己符合参与范围的活动。
+        // 过滤在分页之后做（范围内判定需要逐活动读目标人群），
+        // 因此 total 仍是「已发布活动总数」而非过滤后的数量——这是有意的：
+        // 分页游标必须稳定，否则用户翻页时会看到重复或漏项。
+        if (forUserId != null) {
+            List<ActivityVo> eligible = vos.stream()
+                    .filter(vo -> activityScopeService.isEligible(vo.getId(), forUserId))
+                    .collect(Collectors.toList());
+            return PageResult.of(eligible, result.getTotal(), safePage, safeSize);
+        }
         return PageResult.of(vos, result.getTotal(), safePage, safeSize);
     }
 
