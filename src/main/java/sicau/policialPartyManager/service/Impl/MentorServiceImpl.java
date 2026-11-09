@@ -29,9 +29,13 @@ public class MentorServiceImpl {
     /** 每人最多在职培养联系人数 */
     public static final int MAX_MENTORS = 2;
 
+    /** 党员身份门槛：tb_identity.level >= 5（预备党员 / 正式党员） */
+    private static final int PARTY_MEMBER_LEVEL = 5;
+
     private final UserMentorMapper userMentorMapper;
     private final UserMapper userMapper;
     private final UserDetailMapper userDetailMapper;
+    private final sicau.policialPartyManager.repository.IdentityMapper identityMapper;
     private final BranchScopeService branchScopeService;
 
     /** 指派培养联系人；已存在则幂等返回。 */
@@ -46,6 +50,18 @@ public class MentorServiceImpl {
         }
         if (userMapper.selectById(mentorId) == null) {
             throw new IllegalArgumentException("培养联系人不存在");
+        }
+        // DDL 注释声明「培养联系人须为党员」：正式党员(level=6) 或 预备党员(level=5)。
+        // 未登记政治身份的关系人不能担任，否则「谁带的」在档案里无从追溯。
+        sicau.policialPartyManager.model.entity.UserDetail mentorDetail = userDetailMapper.selectById(mentorId);
+        Long identityId = mentorDetail == null ? null : mentorDetail.getIdentityId();
+        if (identityId == null) {
+            throw new IllegalArgumentException("培养联系人须为党员（预备党员或正式党员），该用户尚未登记政治身份");
+        }
+        sicau.policialPartyManager.model.entity.Identity identity = identityMapper.selectById(identityId);
+        Integer level = identity == null ? null : identity.getLevel();
+        if (level == null || level < PARTY_MEMBER_LEVEL) {
+            throw new IllegalArgumentException("培养联系人须为党员（预备党员或正式党员）");
         }
         UserMentor existed = userMentorMapper.selectOne(new LambdaQueryWrapper<UserMentor>()
                 .eq(UserMentor::getUserId, userId)

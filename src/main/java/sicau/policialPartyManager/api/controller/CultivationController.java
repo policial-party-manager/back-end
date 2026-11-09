@@ -38,13 +38,16 @@ public class CultivationController {
 
     private final MentorServiceImpl mentorService;
     private final CultivationMaterialServiceImpl materialService;
+    private final sicau.policialPartyManager.service.BranchScopeService branchScopeService;
 
     // ---------- 培养联系人 ----------
 
-    @Operation(summary = "查看成员当前培养联系人")
+    @Operation(summary = "查看成员当前培养联系人", description = "按操作者范围；越权与真不存在同文案")
     @GetMapping("/mentors")
     public Result<List<MentorServiceImpl.MentorView>> mentors(@CurrentUser User operator,
                                                              @PathVariable Long userId) {
+        // 与 materials() 同策略：培养关系属成员隐私，必须过支部范围闸门
+        branchScopeService.requireManageableUser(operator, userId);
         return Result.ok(mentorService.mentorViewsOf(userId));
     }
 

@@ -31,7 +31,7 @@
 
 ```
 ├── sql/                                  # 数据库脚本与文档
-│   ├── databases.sql                     # 一键建库（按外键顺序 SOURCE 21 张表）
+│   ├── databases.sql                     # 一键建库（按外键顺序 SOURCE 23 张表）
 │   ├── tb_*.sql                          # 单表 DDL（20 个）
 │   ├── alter_*.sql                       # 已有环境的幂等增量脚本
 │   ├── schema-verify.sh                  # 在临时库重跑全套 DDL 的回归护栏
@@ -80,7 +80,7 @@
 mysql -u root -p < sql/databases.sql
 ```
 
-> 脚本会建库并按外键依赖顺序创建 21 张表。改过任何 `sql/tb_*.sql` 后，执行 `./sql/schema-verify.sh` 可验证整套 DDL 仍能干净建库（它会 DROP 并重建临时库 `pp_schema_verify`，不会碰业务库）。
+> 脚本会建库并按外键依赖顺序创建 23 张表。改过任何 `sql/tb_*.sql` 后，执行 `./sql/schema-verify.sh` 可验证整套 DDL 仍能干净建库（它会 DROP 并重建临时库 `pp_schema_verify`，不会碰业务库）。
 
 ### 3. 修改配置
 
@@ -185,6 +185,12 @@ Authorization: Bearer <token>
 | `/api/v4/thought-reports` | `ThoughtReportController` | 3 path / 3 op | 登录即可 | 思想汇报：提交（自动派审秘书）/我的列表/撤回 |
 | `/api/v4/review/thought-reports` | `ThoughtReportReviewController` | 3 path / 3 op | `branch_admin` | 审阅侧：待审列表/详情/通过驳回（越权=「不存在」） |
 | `/api/v4/identity-changes` | `IdentityChangeController` | 4 path / 4 op | `branch_admin` 发起 / `super_admin` 审批 | 身份变更两阶段单（支管限本支部） |
+| `/api/v4/members` | `MemberController` + `CultivationController` | 11 path | `branch_admin` / `super_admin` | 成员查看/改联系方式/导出（限本支部）+ 培养联系人 + 培养材料 |
+| `/api/v4/activities` | `ActivitySignController` + `ActivitySignupController` + `SignQrController` + `ScopedActivityController` | 9 path | 登录即可 / `branch_admin` | 成员签到报名、二维码生成与扫码、支委按支部建/改/查/导出活动 |
+| `/api/v4/admin/activities/{activityId}` | `AttendanceController` | 3 path | `branch_admin` / `super_admin` | 请假录入撤销 + 考勤四态统计（限本支部） |
+| `/api/v4/admin/users/batch` | `MemberBatchController` | 2 path | `super_admin` | 批量停用恢复 / 批量调整所属支部（上限 200、逐条明细） |
+| `/api/v4/statistics` | `StatisticsController` | 2 path | 登录即可（按角色收窄） | 首页待办数 + 阶段分布（支委限本支部） |
+| `/api/v4/cultivation-profiles` | `CultivationProfileController` | 2 path | 登录即可（按角色收窄） | 电子培养档案聚合（`/me` 与 `/{userId}`） |
 | `/api/v4/uploads` | `UploadController` | 1 path / 1 op | 登录即可 | 本地附件上传（白名单扩展名，返回 file: 路径） |
 
 补充说明：
@@ -212,14 +218,20 @@ Authorization: Bearer <token>
 
 ## 数据库设计
 
-共 **21 张表**，按四个域组织。完整字段与约束见 [sql/er-diagram.md](sql/er-diagram.md)（Mermaid，可在 VS Code 预览或粘贴到 mermaid.live）。
+共 **23 张表**，按四个域组织。完整字段与约束见 [sql/er-diagram.md](sql/er-diagram.md)（Mermaid，可在 VS Code 预览或粘贴到 mermaid.live）。
 
 | 域 | 表 |
 | --- | --- |
 | 用户权限 | `tb_user`、`tb_user_detail`、`tb_user_role`、`tb_role`、`tb_role_permission` |
 | 组织与身份 | `tb_branch`、`tb_identity`、`tb_identity_change` |
-| 党建业务 | `tb_activity`、`tb_activity_detail`、`tb_activity_identity`、`tb_activity_signup`、`tb_activity_type`、`tb_sign_record`、`tb_study`、`tb_study_record`、`tb_thought_report` |
-| 内容与日志 | `tb_news`、`tb_notice`、`tb_notice_top`、`tb_operation` |
+| 党建业务 | `tb_activity`、`tb_activity_detail`、`tb_activity_identity`、`tb_activity_signup`、`tb_activity_type`、`tb_activity_leave`、`tb_sign_record`、`tb_study`、`tb_study_record`、`tb_thought_report` |
+| 培养档案 | `tb_user_mentor`、`tb_cultivation_material` |
+| 内容与日志 | `tb_news`、`tb_notice`、`tb_notice_top` |
+
+> `tb_user_mentor` 是**培养联系人**关系（组织指派的培养责任人，1~2 名），与
+> `tb_user_detail.contact_person`（紧急联系人，成员自填）是两个不同概念，见 `GLOSSARY.md`。
+> `tb_activity_leave` 承载**请假**这一「已批准的预期」，与 `tb_sign_record`（已发生的事实）生命周期不同。
+> `tb_operation` 已删除：该表从未被写入，审计实际走 Elasticsearch 通道。
 
 **政治身份级别**（`tb_identity.level`，字典由迁移播种、超管可维护；`tb_identity.role_id` 仅展示映射，**不参与鉴权**）：
 
@@ -282,7 +294,7 @@ mybatis-plus:
 ### 实体字段映射
 
 - 数据库：`snake_case`；Java：`camelCase`，MyBatis-Plus 自动转换
-- 实体与表一一对应，共 20 个；改表必须同步 `sql/tb_*.sql` 与实体
+- 实体与表一一对应，共 23 个；改表必须同步 `sql/tb_*.sql` 与实体
 
 ### 软删除
 

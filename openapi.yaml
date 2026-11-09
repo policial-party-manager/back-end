@@ -5933,25 +5933,6 @@ paths:
                     type: "string"
                   data:
                     type: "object"
-  /api/v4/cultivation-profiles/mine:
-    get:
-      tags:
-        - "电子培养档案"
-      summary: "查询自己的完整培养档案"
-      responses:
-        "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: "object"
-                properties:
-                  code:
-                    type: "integer"
-                  message:
-                    type: "string"
-                  data:
-                    type: "object"
   /api/v4/activities:
     post:
       tags:

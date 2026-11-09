@@ -7,7 +7,7 @@ create table tb_identity_change
     to_identity   int                                  not null comment '到什么身份',
     operator_id   int                                  not null comment '发起操作者id',
     reason        text                                 null comment '变更原因',
-    status        tinyint    default 1                 not null comment '单据状态（1：待审批，2：已生效，3：驳回）',
+    status        tinyint    default 1                 not null comment '单据状态（0：作废，1：待审批，2：已生效，3：驳回）',
     reviewer_id   int                                  null comment '审批人（仅 super_admin 审批）',
     review_time   timestamp                            null comment '审批时间',
     review_remark varchar(50)                          null comment '审批意见',

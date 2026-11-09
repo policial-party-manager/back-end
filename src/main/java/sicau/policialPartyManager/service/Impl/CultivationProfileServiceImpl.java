@@ -63,6 +63,8 @@ public class CultivationProfileServiceImpl {
 
         vo.setIdentityChanges(identityChangeMapper.selectList(new LambdaQueryWrapper<IdentityChange>()
                 .eq(IdentityChange::getUserId, userId)
+                // 软删除/作废过滤：本 spec 把 status=0 引入为「作废」，作废单不该作为历史展示给成员
+                .ne(IdentityChange::getStatus, 0)
                 .orderByDesc(IdentityChange::getId)));
 
         List<ThoughtReport> reports = thoughtReportMapper.selectList(new LambdaQueryWrapper<ThoughtReport>()
