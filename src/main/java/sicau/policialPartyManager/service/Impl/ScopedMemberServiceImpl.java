@@ -63,8 +63,13 @@ public class ScopedMemberServiceImpl {
         }
 
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        // #68-L6：默认名单不包含停用者（status=2）。
+        // 传了 status 就按传入过滤（此时可显式查停用者，用于「恢复」场景）；
+        // 不传则只给启用中的成员——"毕业/转出的人不再出现在名单里"。
         if (status != null) {
             wrapper.eq(User::getStatus, status);
+        } else {
+            wrapper.eq(User::getStatus, 1);
         }
         if (candidateIds != null) {
             wrapper.in(User::getId, candidateIds);
@@ -148,8 +153,13 @@ public class ScopedMemberServiceImpl {
         Long branchFilter = resolveBranchFilter(operator, null);
         Set<Long> candidates = filterDetailIds(branchFilter, keyword, grade, major, college, identityId);
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        // #68-L6：默认名单不包含停用者（status=2）。
+        // 传了 status 就按传入过滤（此时可显式查停用者，用于「恢复」场景）；
+        // 不传则只给启用中的成员——"毕业/转出的人不再出现在名单里"。
         if (status != null) {
             wrapper.eq(User::getStatus, status);
+        } else {
+            wrapper.eq(User::getStatus, 1);
         }
         if (candidates != null) {
             if (candidates.isEmpty()) {

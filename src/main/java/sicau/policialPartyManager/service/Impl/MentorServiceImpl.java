@@ -24,7 +24,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class MentorServiceImpl {
+public class MentorServiceImpl implements sicau.policialPartyManager.service.MentorQueryService {
 
     /** 每人最多在职培养联系人数 */
     public static final int MAX_MENTORS = 2;
@@ -114,6 +114,7 @@ public class MentorServiceImpl {
     }
 
     /** 某成员当前培养联系人明细（id + 姓名），供档案与思想汇报展示。 */
+    @Override
     public List<MentorView> mentorViewsOf(Long userId) {
         List<UserMentor> rows = userMentorMapper.selectList(new LambdaQueryWrapper<UserMentor>()
                 .eq(UserMentor::getUserId, userId)
@@ -134,13 +135,16 @@ public class MentorServiceImpl {
 
     /** 按培养联系人反查当前带教的成员 id。 */
     public List<Long> menteesOf(sicau.policialPartyManager.model.records.User operator, Long mentorId) {
-        // 支委只能看本支部成员；超管不限
+        // 支委只能看本支部成员；超管不限。
+        // #68-L2：培养联系人本人要能看到自己带教的所有成员——他没有支部范围
+        //（branchIdOf 对非支委返回 null），此前会被过滤成空列表。
         List<UserMentor> rows = userMentorMapper.selectList(new LambdaQueryWrapper<UserMentor>()
                 .eq(UserMentor::getMentorId, mentorId)
                 .eq(UserMentor::getStatus, 1));
         List<Long> ids = new ArrayList<>();
+        boolean selfIsMentor = operator != null && mentorId.equals(operator.userId());
         for (UserMentor r : rows) {
-            if (branchScopeService.isSuperAdmin(operator)) {
+            if (branchScopeService.isSuperAdmin(operator) || selfIsMentor) {
                 ids.add(r.getUserId());
                 continue;
             }

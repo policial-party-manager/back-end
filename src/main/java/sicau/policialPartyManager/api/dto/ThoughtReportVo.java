@@ -43,4 +43,11 @@ public class ThoughtReportVo {
     private LocalDateTime submitTime;
 
     private LocalDateTime reviewTime;
+
+    /**
+     * 提交人**当前**的培养联系人（#68-L1 / #72 故事 50）。
+     * <p>按 user_id 派生而非存入汇报表：换联系人后旧汇报的归属随之更新，
+     * 这是 spec 块1 的裁定行为（Q15=B），不是缺陷。
+     */
+    private java.util.List<sicau.policialPartyManager.service.Impl.MentorServiceImpl.MentorView> mentors;
 }

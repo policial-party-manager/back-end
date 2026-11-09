@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import sicau.policialPartyManager.api.dto.DashboardVo;
 import sicau.policialPartyManager.api.dto.DistributionVo;
+import sicau.policialPartyManager.model.entity.Branch;
 import sicau.policialPartyManager.model.entity.Identity;
 import sicau.policialPartyManager.model.entity.IdentityChange;
 import sicau.policialPartyManager.model.entity.ThoughtReport;
@@ -33,6 +34,7 @@ public class DashboardServiceImpl {
     private final IdentityChangeMapper identityChangeMapper;
     private final UserDetailMapper userDetailMapper;
     private final IdentityMapper identityMapper;
+    private final sicau.policialPartyManager.repository.BranchMapper branchMapper;
     private final BranchScopeService branchScopeService;
 
     public DashboardVo dashboard(sicau.policialPartyManager.model.records.User operator) {
@@ -126,6 +128,14 @@ public class DashboardServiceImpl {
                 case "major" -> m.getMajor();
                 case "className" -> m.getClassName();
                 case "grade" -> m.getGrade();
+                // #68-L9：全校各支部的人数与阶段分布需要「按支部」切分
+                case "branch" -> {
+                    if (m.getBranchId() == null) {
+                        yield null;
+                    }
+                    Branch b = branchMapper.selectById(m.getBranchId());
+                    yield b == null ? "支部#" + m.getBranchId() : b.getBranchName();
+                }
                 default -> null;
             };
             grouped.computeIfAbsent(key == null ? "未填写" : key, k -> new ArrayList<>()).add(m);
@@ -184,7 +194,7 @@ public class DashboardServiceImpl {
             return "college";
         }
         return switch (dimension.trim()) {
-            case "major", "className", "grade", "college" -> dimension.trim();
+            case "major", "className", "grade", "college", "branch" -> dimension.trim();
             default -> "college";
         };
     }

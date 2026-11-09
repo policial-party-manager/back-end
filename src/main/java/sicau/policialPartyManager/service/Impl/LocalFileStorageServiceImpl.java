@@ -31,8 +31,8 @@ import java.util.UUID;
 @Service
 public class LocalFileStorageServiceImpl implements FileStorageService {
 
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("pdf", "doc", "docx", "jpg", "png");
-    private static final Set<String> ALLOWED_CATEGORIES = Set.of("thought");
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("pdf", "doc", "docx", "jpg", "jpeg", "png", "zip");
+    private static final Set<String> ALLOWED_CATEGORIES = Set.of("thought", "material");
     private static final DateTimeFormatter MONTH = DateTimeFormatter.ofPattern("yyyy/MM");
 
     private final Path root;

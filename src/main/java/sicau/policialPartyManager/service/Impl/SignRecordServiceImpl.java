@@ -30,6 +30,7 @@ public class SignRecordServiceImpl implements SignRecordService {
     private final ActivityDetailMapper activityDetailMapper;
     private final ActivityTypeMapper activityTypeMapper;
     private final ActivityScopeService activityScopeService;
+    private final sicau.policialPartyManager.repository.ActivityLeaveMapper activityLeaveMapper;
 
     @Override
     @Transactional
@@ -46,6 +47,11 @@ public class SignRecordServiceImpl implements SignRecordService {
 
         // 签到窗：两边界都可空，为空视为不限
         LocalDateTime now = LocalDateTime.now();
+        // #68-L5：活动本身已结束时一律禁止签到（此前只看 signStart/signEnd，
+        // 活动结束后若签到窗没配好，仍能签到）
+        if (activity.getEndTime() != null && now.isAfter(activity.getEndTime())) {
+            throw new IllegalArgumentException("活动已结束，无法签到");
+        }
         if (detail.getSignStart() != null && now.isBefore(detail.getSignStart())) {
             throw new IllegalArgumentException("签到尚未开始");
         }
@@ -79,7 +85,19 @@ public class SignRecordServiceImpl implements SignRecordService {
         record.setSignType("sign");
         record.setDevice(trimToNull(request.getDevice()));
         record.setLocation(trimToNull(request.getLocation()));
-        record.setRemark(trimToNull(request.getRemark()));
+        // #68-L3：已请假的人到场签到仍应成功（人到场是事实），但要留下可追溯的提示。
+        // 统计口径以签到为准，请假记录不删除也不改写。
+        String userRemark = trimToNull(request.getRemark());
+        Long leaveCount = activityLeaveMapper.selectCount(
+                new LambdaQueryWrapper<sicau.policialPartyManager.model.entity.ActivityLeave>()
+                        .eq(sicau.policialPartyManager.model.entity.ActivityLeave::getActivityId, activityId)
+                        .eq(sicau.policialPartyManager.model.entity.ActivityLeave::getUserId, userId)
+                        .eq(sicau.policialPartyManager.model.entity.ActivityLeave::getStatus, 1));
+        if (leaveCount != null && leaveCount > 0) {
+            String hint = "【已存在请假记录，到场后以签到为准】";
+            userRemark = userRemark == null ? hint : hint + userRemark;
+        }
+        record.setRemark(userRemark);
         try {
             signRecordMapper.insert(record);
         } catch (DuplicateKeyException e) {
