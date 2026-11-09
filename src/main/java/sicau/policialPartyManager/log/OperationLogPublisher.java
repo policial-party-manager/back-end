@@ -100,6 +100,26 @@ public class OperationLogPublisher {
         publish(log);
     }
 
+    /**
+     * 数据变更审计（#74）：在业务动作之外补记修改前后快照。
+     * <p>只在实际发生变化时记录，避免产生误导性的「前后一致」条目。
+     *
+     * @param module     业务模块（如 成员管理）
+     * @param action     动作描述（如 修改联系方式）
+     * @param targetId   被操作对象 id
+     * @param beforeData 修改前 JSON；为 null 表示新建
+     * @param afterData  修改后 JSON
+     */
+    public void dataChange(String module, String action, Long targetId,
+                           String beforeData, String afterData) {
+        OperationLog log = base(LogType.OPERATION, module, action);
+        log.setSuccess(true);
+        log.setMessage(targetId == null ? null : "对象id=" + targetId);
+        log.setBeforeData(beforeData);
+        log.setAfterData(afterData);
+        publish(log);
+    }
+
     private OperationLog base(String logType, String module, String action) {
         OperationLog log = new OperationLog();
         log.setLogType(logType);

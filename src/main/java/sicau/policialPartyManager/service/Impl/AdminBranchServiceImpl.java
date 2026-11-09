@@ -9,7 +9,13 @@ import org.springframework.web.multipart.MultipartFile;
 import sicau.policialPartyManager.api.dto.ImportResult;
 import sicau.policialPartyManager.api.dto.PageResult;
 import sicau.policialPartyManager.model.entity.Branch;
+import sicau.policialPartyManager.model.entity.Role;
+import sicau.policialPartyManager.model.entity.User;
+import sicau.policialPartyManager.model.entity.UserRole;
 import sicau.policialPartyManager.repository.BranchMapper;
+import sicau.policialPartyManager.repository.RoleMapper;
+import sicau.policialPartyManager.repository.UserMapper;
+import sicau.policialPartyManager.repository.UserRoleMapper;
 import sicau.policialPartyManager.service.AdminBranchService;
 import sicau.policialPartyManager.utils.ExcelUtil;
 
@@ -31,6 +37,44 @@ public class AdminBranchServiceImpl implements AdminBranchService {
     };
 
     private final BranchMapper branchMapper;
+    private final UserMapper userMapper;
+    private final UserRoleMapper userRoleMapper;
+    private final RoleMapper roleMapper;
+
+    /**
+     * 书记必须是持有支委角色的用户（#70）。
+     * <p>消除「是书记但没有 branch_admin 权限」的死角：
+     * 书记身份用于派定思想汇报审阅人，若该人没有支委角色，审阅侧就无从判定。
+     */
+    private void requireSecretaryIsBranchAdmin(Long secretaryId) {
+        User user = userMapper.selectById(secretaryId);
+        if (user == null) {
+            throw new IllegalArgumentException("书记用户不存在");
+        }
+        // roleName 在库里存的是 ROLE_BRANCH_ADMIN（带前缀、全大写），
+        // 不能用 branch_admin 精确匹配——必须规范化后比较。
+        Role branchAdmin = roleMapper.selectList(new LambdaQueryWrapper<Role>())
+                .stream()
+                .filter(r -> r.getRoleName() != null
+                        && normalizeRoleCode(r.getRoleName()).equals("branch_admin"))
+                .findFirst()
+                .orElse(null);
+        if (branchAdmin == null) {
+            throw new IllegalArgumentException("系统缺少 branch_admin 角色，无法指定书记");
+        }
+        Long n = userRoleMapper.selectCount(new LambdaQueryWrapper<UserRole>()
+                .eq(UserRole::getUserId, secretaryId)
+                .eq(UserRole::getRoleId, branchAdmin.getId()));
+        if (n == null || n == 0) {
+            throw new IllegalArgumentException("书记必须是持有支委（branch_admin）角色的用户");
+        }
+    }
+
+    /** ROLE_BRANCH_ADMIN / branch_admin / Role_Branch_Admin → branch_admin */
+    private static String normalizeRoleCode(String roleName) {
+        String s = roleName.trim().toLowerCase();
+        return s.startsWith("role_") ? s.substring("role_".length()) : s;
+    }
 
     @Override
     public PageResult<Branch> pageBranches(long page, long size, String keyword) {
@@ -64,6 +108,7 @@ public class AdminBranchServiceImpl implements AdminBranchService {
             throw new IllegalArgumentException("书记用户id不能为空");
         }
         checkNameFree(name.trim(), null);
+        requireSecretaryIsBranchAdmin(branch.getSecretaryId());
         branch.setId(null);
         branch.setBranchName(name.trim());
         branch.setStatus(1);
@@ -84,6 +129,7 @@ public class AdminBranchServiceImpl implements AdminBranchService {
             existing.setCollege(branch.getCollege());
         }
         if (branch.getSecretaryId() != null) {
+            requireSecretaryIsBranchAdmin(branch.getSecretaryId());
             existing.setSecretaryId(branch.getSecretaryId());
         }
         if (branch.getDescription() != null) {

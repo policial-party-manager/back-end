@@ -7,13 +7,13 @@ create table tb_identity_change
     to_identity   int                                  not null comment '到什么身份',
     operator_id   int                                  not null comment '发起操作者id',
     reason        text                                 null comment '变更原因',
-    status        tinyint    default 1                 not null comment '单据状态（1：待审批，2：已生效，3：驳回）',
+    status        tinyint    default 1                 not null comment '单据状态（0：作废，1：待审批，2：已生效，3：驳回）',
     reviewer_id   int                                  null comment '审批人（仅 super_admin 审批）',
     review_time   timestamp                            null comment '审批时间',
     review_remark varchar(50)                          null comment '审批意见',
     create_time   timestamp  default CURRENT_TIMESTAMP not null comment '发起时间',
     constraint chk_identity_change_status
-        check (`status` in (1, 2, 3)),
+        check (`status` in (0, 1, 2, 3)),
     constraint tb_identity_change_tb_identity_id_fk
         foreign key (from_identity) references tb_identity (id),
     constraint tb_identity_change_tb_identity_id_fk_2

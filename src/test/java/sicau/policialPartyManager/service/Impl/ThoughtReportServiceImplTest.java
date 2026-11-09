@@ -48,6 +48,8 @@ class ThoughtReportServiceImplTest {
     private UserDetailMapper userDetailMapper;
     @Mock
     private BranchMapper branchMapper;
+    @Mock
+    private sicau.policialPartyManager.service.MentorQueryService mentorService;
 
     @InjectMocks
     private ThoughtReportServiceImpl service;
@@ -184,8 +186,28 @@ class ThoughtReportServiceImplTest {
     }
 
     @Test
-    void reviewingOthersAssignmentHidesExistence() {
+    void detailIncludesSubmitterCurrentMentors() {
+        // #68-L1 / #72 故事 50：思想汇报详情要能看到提交人当前培养联系人
         ThoughtReport report = pendingReport();
+        when(reportMapper.selectById(5L)).thenReturn(report);
+        when(userDetailMapper.selectById(report.getUserId()))
+                .thenReturn(detail(report.getUserId(), "提交人", 1L));
+        when(userDetailMapper.selectById(report.getReviewerId()))
+                .thenReturn(detail(report.getReviewerId(), "审阅人", 1L));
+        var view = new sicau.policialPartyManager.service.Impl.MentorServiceImpl.MentorView();
+        view.setMentorId(88L);
+        view.setRealName("培养人甲");
+        when(mentorService.mentorViewsOf(report.getUserId())).thenReturn(java.util.List.of(view));
+
+        var vo = service.getForReviewer(5L, secretary);
+
+        assertNotNull(vo.getMentors(), "详情必须带培养联系人");
+        assertEquals(1, vo.getMentors().size());
+        assertEquals("培养人甲", vo.getMentors().get(0).getRealName());
+    }
+
+    @Test
+    void reviewingOthersAssignmentHidesExistence() {        ThoughtReport report = pendingReport();
         report.setReviewerId(99L); // 已改派他人
         when(reportMapper.selectById(5L)).thenReturn(report);
 

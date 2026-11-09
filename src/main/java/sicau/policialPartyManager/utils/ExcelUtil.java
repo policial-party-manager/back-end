@@ -65,6 +65,51 @@ public final class ExcelUtil {
     }
 
     /**
+     * 导出带表头的数据表（#68 补齐）：成员名单、签到名单等多处需要「表头 + 若干行字符串」，
+     * 此前各自手写一遍 POI 建表流程，现统一收敛到这里。
+     *
+     * @param sheetName 工作表名
+     * @param headers   表头列名
+     * @param rows      数据行；每个元素长度可小于 headers，缺的列留空
+     * @return .xlsx 文件字节
+     */
+    public static byte[] createSheet(String sheetName, String[] headers, List<String[]> rows) {
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet(sheetName);
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+                sheet.setColumnWidth(i, 20 * 256);
+            }
+
+            int rowIdx = 1;
+            if (rows != null) {
+                for (String[] data : rows) {
+                    if (data == null) {
+                        continue;
+                    }
+                    Row row = sheet.createRow(rowIdx++);
+                    for (int i = 0; i < data.length && i < headers.length; i++) {
+                        Cell cell = row.createCell(i);
+                        cell.setCellValue(data[i] == null ? "" : data[i]);
+                    }
+                }
+            }
+            workbook.write(out);
+            return out.toByteArray();
+        } catch (IOException e) {
+            throw new IllegalStateException("导出表格失败", e);
+        }
+    }
+
+    /**
      * 解析上传的 Excel，返回数据行（不含表头）。
      *
      * @param file            上传文件（支持 .xlsx/.xls）

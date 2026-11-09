@@ -2,7 +2,7 @@ spring:
   application:
     name: policial-party-manager
   datasource:
-    url: jdbc:mysql://localhost:3306/party_manager?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/policial_party_manager?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -91,3 +91,7 @@ frontend:
 
 server:
   port: 8080
+
+app:
+  sign:
+    qr-ttl: 60

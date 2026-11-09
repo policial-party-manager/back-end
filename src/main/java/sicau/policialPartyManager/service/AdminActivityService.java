@@ -27,6 +27,22 @@ public interface AdminActivityService {
     /** 调整活动状态（0/1/2） */
     void updateActivityStatus(Long id, Integer status);
 
+    // ===== 带数据范围的写操作（#71 / #68 补齐：支委限本支部） =====
+
+    /**
+     * 创建活动（按操作者范围）：支委创建的活动强制归属本支部，
+     * 请求里指定的其他支部被忽略，避免支委把活动挂到别人支部。
+     */
+    void createActivityScoped(sicau.policialPartyManager.model.records.User operator,
+                              ActivitySaveRequest request);
+
+    /**
+     * 编辑活动（按操作者范围）：支委只能编辑本支部、且尚未开始的活动。
+     * 跨支部或已开始统一按「活动不存在」处理。
+     */
+    void updateActivityScoped(sicau.policialPartyManager.model.records.User operator,
+                              Long id, ActivitySaveRequest request);
+
     // ===== 活动类型 =====
 
     /** 活动类型下拉/列表 */

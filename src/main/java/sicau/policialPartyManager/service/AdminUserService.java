@@ -8,7 +8,7 @@ import sicau.policialPartyManager.api.dto.UserVo;
 
 public interface AdminUserService {
 
-    /** 分页搜索用户：keyword 匹配 姓名/用户名/学号/手机/邮箱；可按支部/角色/状态过滤 */
+    /** 分页搜索用户：keyword 匹配姓名/用户名/学号/手机/邮箱；可按支部/角色/状态过滤 */
     PageResult<UserVo> pageUsers(long page, long size, String keyword, Long branchId, Long roleId, Integer status);
 
     /** 用户详情（含角色、支部） */

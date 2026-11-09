@@ -24,7 +24,7 @@ public class UploadController {
     private final FileStorageService fileStorageService;
 
     @Operation(summary = "上传附件",
-            description = "multipart 字段 file；category 目前仅 thought；扩展名限 pdf/doc/docx/jpg/png；"
+            description = "multipart 字段 file；category 可选 thought（思想汇报附件）/ material（培养材料）；扩展名限 pdf/doc/docx/jpg/jpeg/png/zip；"
                     + "返回 file: 前缀相对路径，提交表单时原样带回")
     @PostMapping
     public Result<UploadResult> upload(@RequestParam("file") MultipartFile file,

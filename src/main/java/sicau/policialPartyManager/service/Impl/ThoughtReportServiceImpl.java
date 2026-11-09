@@ -40,6 +40,8 @@ public class ThoughtReportServiceImpl implements ThoughtReportService {
     private final ThoughtReportMapper reportMapper;
     private final UserDetailMapper userDetailMapper;
     private final BranchMapper branchMapper;
+    /** #68-L1：思想汇报详情要展示提交人当前培养联系人（依赖窄接口，便于单测） */
+    private final sicau.policialPartyManager.service.MentorQueryService mentorService;
 
     @Override
     public ThoughtReportVo submit(ThoughtReportSubmitRequest request, User user) {
@@ -177,6 +179,11 @@ public class ThoughtReportServiceImpl implements ThoughtReportService {
         vo.setReviewRemark(report.getReviewRemark());
         vo.setSubmitTime(report.getSubmitTime());
         vo.setReviewTime(report.getReviewTime());
+        // #68-L1：仅在「详情」形态（withContent=true）回填培养联系人，
+        // 避免列表分页时逐条查库（N+1）。列表不展示该字段也不违反故事 50。
+        if (withContent && mentorService != null) {
+            vo.setMentors(mentorService.mentorViewsOf(report.getUserId()));
+        }
         return vo;
     }
 

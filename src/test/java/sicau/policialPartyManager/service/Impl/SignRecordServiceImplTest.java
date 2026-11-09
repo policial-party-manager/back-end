@@ -43,9 +43,82 @@ class SignRecordServiceImplTest {
     private ActivityDetailMapper activityDetailMapper;
     @Mock
     private ActivityTypeMapper activityTypeMapper;
+    @Mock
+    private sicau.policialPartyManager.service.ActivityScopeService activityScopeService;
+    @Mock
+    private sicau.policialPartyManager.repository.ActivityLeaveMapper activityLeaveMapper;
 
     @InjectMocks
     private SignRecordServiceImpl service;
+
+    @Test
+    void signRejectedAfterActivityEnded() {
+        // #68-L5：活动本身已结束时禁止签到（此前只看 signStart/signEnd）
+        activity.setEndTime(LocalDateTime.now().minusHours(2));
+        when(activityMapper.selectById(1L)).thenReturn(activity);
+        when(activityDetailMapper.selectById(1L)).thenReturn(detail);
+
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> service.sign(request, 42L));
+        assertTrue(e.getMessage().contains("已结束"), e.getMessage());
+        verify(signRecordMapper, never()).insert(any(sicau.policialPartyManager.model.entity.SignRecord.class));
+    }
+
+    @Test
+    void signingWhileOnLeaveAddsHintButStillSucceeds() {
+        // #68-L3：已请假者到场签到仍应成功，但签到记录要留下可追溯提示
+        when(activityMapper.selectById(1L)).thenReturn(activity);
+        when(activityDetailMapper.selectById(1L)).thenReturn(detail);
+        when(activityTypeMapper.selectById(7L)).thenReturn(null);
+        when(signRecordMapper.selectCount(any())).thenReturn(0L);
+        when(activityLeaveMapper.selectCount(any())).thenReturn(1L); // 有生效请假
+
+        var record = service.sign(request, 42L);
+
+        assertNotNull(record);
+        assertTrue(record.getRemark() != null && record.getRemark().contains("请假"),
+                "签到记录需带已请假提示，实际 remark=" + record.getRemark());
+    }
+
+    @Test
+    void signingWithoutLeaveHasNoHint() {
+        when(activityMapper.selectById(1L)).thenReturn(activity);
+        when(activityDetailMapper.selectById(1L)).thenReturn(detail);
+        when(activityTypeMapper.selectById(7L)).thenReturn(null);
+        when(signRecordMapper.selectCount(any())).thenReturn(0L);
+        when(activityLeaveMapper.selectCount(any())).thenReturn(0L);
+
+        var record = service.sign(request, 42L);
+
+        assertTrue(record.getRemark() == null || !record.getRemark().contains("请假"));
+    }
+
+    @Test
+    void outOfScopeUserIsRejectedBeforeInsert() {
+        // #77：不属于参与范围的人签到必须被拒，且不得写入签到记录
+        when(activityMapper.selectById(1L)).thenReturn(activity);
+        when(activityDetailMapper.selectById(1L)).thenReturn(detail);
+        when(activityTypeMapper.selectById(7L)).thenReturn(null);
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("您不符合该活动的报名范围（年级/学院/政治身份）"))
+                .when(activityScopeService).requireEligible(1L, 42L);
+
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> service.sign(request, 42L));
+        assertTrue(e.getMessage().contains("范围"), e.getMessage());
+        verify(signRecordMapper, never()).insert(any(sicau.policialPartyManager.model.entity.SignRecord.class));
+    }
+
+    @Test
+    void scopeIsCheckedWithActivityAndUserIds() {
+        when(activityMapper.selectById(1L)).thenReturn(activity);
+        when(activityDetailMapper.selectById(1L)).thenReturn(detail);
+        when(activityTypeMapper.selectById(7L)).thenReturn(null);
+        when(signRecordMapper.selectCount(any())).thenReturn(0L);
+
+        service.sign(request, 42L);
+
+        verify(activityScopeService).requireEligible(1L, 42L);
+    }
 
     private Activity activity;
     private ActivityDetail detail;

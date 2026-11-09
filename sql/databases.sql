@@ -38,16 +38,18 @@ SOURCE sql/tb_activity_detail.sql;
 SOURCE sql/tb_activity_identity.sql;
 SOURCE sql/tb_sign_record.sql;
 SOURCE sql/tb_activity_signup.sql;
+SOURCE sql/tb_activity_leave.sql;
 
 -- 五、学习与汇报
 SOURCE sql/tb_study_record.sql;
 SOURCE sql/tb_thought_report.sql;
+SOURCE sql/tb_user_mentor.sql;
+SOURCE sql/tb_cultivation_material.sql;
 
 -- 六、内容与日志
 SOURCE sql/tb_news.sql;
 SOURCE sql/tb_notice.sql;
 SOURCE sql/tb_notice_top.sql;
-SOURCE sql/tb_operation.sql;
 SOURCE sql/tb_identity_change.sql;
 
 -- 字典播种（幂等，与 sql/alter_identity_flow.sql 同源；README「政治身份级别」为权威来源）

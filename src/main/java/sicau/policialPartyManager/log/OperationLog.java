@@ -93,4 +93,12 @@ public class OperationLog {
     /** 发生时间（ISO-8601，便于展示） */
     @Field(type = FieldType.Keyword)
     private String occurTimeText;
+
+    /** 修改前的数据快照（#74；仅成员数据变更时填写，JSON 字符串） */
+    @Field(type = FieldType.Text)
+    private String beforeData;
+
+    /** 修改后的数据快照（#74；未发生实际变化时为空） */
+    @Field(type = FieldType.Text)
+    private String afterData;
 }

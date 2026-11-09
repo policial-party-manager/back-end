@@ -10,9 +10,11 @@ import sicau.policialPartyManager.api.dto.ActivityVo;
 import sicau.policialPartyManager.api.dto.PageResult;
 import sicau.policialPartyManager.model.entity.Activity;
 import sicau.policialPartyManager.model.entity.ActivityDetail;
+import sicau.policialPartyManager.model.entity.ActivityIdentity;
 import sicau.policialPartyManager.model.entity.ActivityType;
 import sicau.policialPartyManager.model.entity.Branch;
 import sicau.policialPartyManager.repository.ActivityDetailMapper;
+import sicau.policialPartyManager.repository.ActivityIdentityMapper;
 import sicau.policialPartyManager.repository.ActivityMapper;
 import sicau.policialPartyManager.repository.ActivityTypeMapper;
 import sicau.policialPartyManager.repository.BranchMapper;
@@ -38,6 +40,31 @@ public class AdminActivityServiceImpl implements AdminActivityService {
     private final ActivityDetailMapper activityDetailMapper;
     private final ActivityTypeMapper activityTypeMapper;
     private final BranchMapper branchMapper;
+    private final ActivityIdentityMapper activityIdentityMapper;
+    private final sicau.policialPartyManager.service.ActivityScopeService activityScopeService;
+    private final sicau.policialPartyManager.service.BranchScopeService branchScopeService;
+
+    /**
+     * 写入参与范围（#76）。
+     * <p>{@code scopes == null} 表示不修改既有范围；空列表表示清空（全场开放）。
+     * 空值语义与判定侧一致：行上为空的维度不参与校验。
+     */
+    private void applyScopes(Long activityId, java.util.List<ActivitySaveRequest.ScopeRow> scopes) {
+        if (scopes == null) {
+            return;
+        }
+        activityIdentityMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<ActivityIdentity>()
+                .eq(ActivityIdentity::getActivityId, activityId));
+        for (ActivitySaveRequest.ScopeRow row : scopes) {
+            ActivityIdentity entity = new ActivityIdentity();
+            entity.setActivityId(activityId);
+            entity.setTargetIdentity(row.getTargetIdentity());
+            entity.setGrade(row.getGrade());
+            entity.setCollege(row.getCollege() == null || row.getCollege().isBlank()
+                    ? null : row.getCollege().trim());
+            activityIdentityMapper.insert(entity);
+        }
+    }
 
     @Override
     public PageResult<ActivityVo> pageActivities(long page, long size, String keyword, Long branchId,
@@ -80,7 +107,10 @@ public class AdminActivityServiceImpl implements AdminActivityService {
         if (activity == null) {
             throw new IllegalArgumentException("活动不存在");
         }
-        return buildVos(List.of(activity)).get(0);
+        ActivityVo vo = buildVos(List.of(activity)).get(0);
+        // #76：详情页给出应到人数（无范围行时为 null，表示全场开放）
+        vo.setExpectedCount(activityScopeService.expectedCount(id));
+        return vo;
     }
 
     @Override
@@ -97,6 +127,7 @@ public class AdminActivityServiceImpl implements AdminActivityService {
             detail.setStatus(1);
         }
         activityDetailMapper.insert(detail);
+        applyScopes(activity.getId(), request.getScopes());
     }
 
     @Override
@@ -120,6 +151,7 @@ public class AdminActivityServiceImpl implements AdminActivityService {
             detail.setStatus(1);
         }
         activityDetailMapper.updateById(detail);
+        applyScopes(id, request.getScopes());
     }
 
     @Override
@@ -129,6 +161,51 @@ public class AdminActivityServiceImpl implements AdminActivityService {
         }
         activityDetailMapper.deleteById(id);
         activityMapper.deleteById(id);
+    }
+
+    // ---------- 带数据范围的写操作（#71 / #68 补齐） ----------
+
+    @Override
+    public void createActivityScoped(sicau.policialPartyManager.model.records.User operator,
+                                     ActivitySaveRequest request) {
+        if (!branchScopeService.isSuperAdmin(operator) && !branchScopeService.isBranchAdmin(operator)) {
+            throw new org.springframework.security.access.AccessDeniedException("无权创建活动");
+        }
+        if (branchScopeService.isBranchAdmin(operator)) {
+            Long mine = branchScopeService.branchIdOf(operator);
+            if (mine == null) {
+                throw new IllegalArgumentException("您尚未归属任何党支部，请联系管理员");
+            }
+            // 支委创建的活动强制归属本支部：忽略请求里指定的其他支部
+            request.setBranchId(mine);
+        }
+        createActivity(request, operator.userId());
+    }
+
+    @Override
+    public void updateActivityScoped(sicau.policialPartyManager.model.records.User operator,
+                                     Long id, ActivitySaveRequest request) {
+        if (!branchScopeService.isSuperAdmin(operator) && !branchScopeService.isBranchAdmin(operator)) {
+            throw new org.springframework.security.access.AccessDeniedException("无权编辑活动");
+        }
+        Activity activity = activityMapper.selectById(id);
+        if (activity == null) {
+            throw new IllegalArgumentException("活动不存在");
+        }
+        if (branchScopeService.isBranchAdmin(operator)) {
+            Long mine = branchScopeService.branchIdOf(operator);
+            if (mine == null || activity.getBranchId() == null || !mine.equals(activity.getBranchId())) {
+                throw new IllegalArgumentException("活动不存在");
+            }
+            // 票面验收判据：支委只能改「尚未开始」的活动
+            if (activity.getStartTime() != null
+                    && java.time.LocalDateTime.now().isAfter(activity.getStartTime())) {
+                throw new IllegalArgumentException("活动已开始，无法编辑");
+            }
+            // 支委不得把活动挪到别的支部
+            request.setBranchId(mine);
+        }
+        updateActivity(id, request, operator.userId());
     }
 
     @Override
@@ -249,6 +326,19 @@ public class AdminActivityServiceImpl implements AdminActivityService {
                 vo.setStatus(detail.getStatus());
                 vo.setCreatorId(detail.getCreatorId());
             }
+            // #76：回读参与范围与应到人数
+            List<ActivityIdentity> scopeRows = activityIdentityMapper.selectList(
+                    new LambdaQueryWrapper<ActivityIdentity>()
+                            .eq(ActivityIdentity::getActivityId, activity.getId()));
+            List<ActivityVo.ScopeRow> scopeVos = new ArrayList<>();
+            for (ActivityIdentity r : scopeRows) {
+                ActivityVo.ScopeRow sr = new ActivityVo.ScopeRow();
+                sr.setTargetIdentity(r.getTargetIdentity());
+                sr.setGrade(r.getGrade());
+                sr.setCollege(r.getCollege());
+                scopeVos.add(sr);
+            }
+            vo.setScopes(scopeVos);
             vos.add(vo);
         }
         return vos;

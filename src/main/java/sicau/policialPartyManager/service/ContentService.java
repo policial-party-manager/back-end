@@ -24,7 +24,13 @@ public interface ContentService {
     Notice getNotice(Long id);
 
     /** 已发布活动分页（活动状态=1；可按支部/类型过滤） */
-    PageResult<ActivityVo> pageActivities(long page, long size, String keyword, Long branchId, Integer type);
+    /**
+     * 活动分页。
+     *
+     * @param forUserId 非空时只返回该用户符合参与范围的活动（#68-L4）；null 表示不过滤
+     */
+    PageResult<ActivityVo> pageActivities(long page, long size, String keyword, Long branchId, Integer type,
+                                          Long forUserId);
 
     /** 活动详情（仅已发布） */
     ActivityVo getActivity(Long id);

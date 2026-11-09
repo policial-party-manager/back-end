@@ -67,6 +67,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final BranchMapper branchMapper;
     private final PasswordEncoder passwordEncoder;
     private final IdentityMapper identityMapper;
+    private final sicau.policialPartyManager.log.OperationLogPublisher logPublisher;
 
     @Override
     public PageResult<UserVo> pageUsers(long page, long size, String keyword, Long branchId, Long roleId, Integer status) {
@@ -180,10 +181,16 @@ public class AdminUserServiceImpl implements AdminUserService {
         }
         fillDetail(detail, request);
         checkDetailUnique(id, detail.getStudentId(), detail.getPhone(), detail.getEmail());
+        // #68-L7：超管改成员也要留审计前后快照（此前只有支委改联系方式那条路记了）
+        String beforeJson = snapshotOf(detailExisted ? userDetailMapper.selectById(id) : null);
         if (detailExisted) {
             userDetailMapper.updateById(detail);
         } else {
             userDetailMapper.insert(detail);
+        }
+        String afterJson = snapshotOf(userDetailMapper.selectById(id));
+        if (!afterJson.equals(beforeJson)) {
+            logPublisher.dataChange("成员管理", "编辑成员资料", id, beforeJson, afterJson);
         }
 
         if (request.getRoleId() != null) {
@@ -581,5 +588,26 @@ public class AdminUserServiceImpl implements AdminUserService {
     private String trimToNull(String value) {
         String v = trim(value);
         return v == null || v.isEmpty() ? null : v;
+    }
+
+    /** #68-L7：成员资料审计快照（只含可改的业务字段，避免把时间戳等噪声算成变更） */
+    private String snapshotOf(UserDetail d) {
+        if (d == null) {
+            return "null";
+        }
+        return "{\"name\":" + js(d.getName())
+                + ",\"studentId\":" + js(d.getStudentId())
+                + ",\"phone\":" + js(d.getPhone())
+                + ",\"email\":" + js(d.getEmail())
+                + ",\"college\":" + js(d.getCollege())
+                + ",\"grade\":" + js(d.getGrade())
+                + ",\"major\":" + js(d.getMajor())
+                + ",\"className\":" + js(d.getClassName())
+                + ",\"branchId\":" + d.getBranchId()
+                + ",\"identityId\":" + d.getIdentityId() + "}";
+    }
+
+    private String js(String v) {
+        return v == null ? "null" : "\"" + v.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 }

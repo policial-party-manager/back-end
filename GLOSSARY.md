@@ -12,4 +12,9 @@
 | **不存在语义** | 越权读取/操作他人单据（审阅、变更单、学习记录）统一返回「XX不存在」，与真不存在同文案，不泄露存在性 | #33/#44/#32 服务层 |
 | **file: 前缀** | 附件/封面引用以 `file:` 开头的相对路径 = 应用本地存储（`app.upload.dir`），`url:` 开头 = 外链 | #33 上传、活动 cover 注释 |
 | **role_id（身份字典）** | `tb_identity.role_id` 仅展示映射，**永不参与鉴权**；登录角色只能由管理员经 `/api/v4/admin/users` 变更（#44 红线，有反射测试锁死） | #44 |
-| **契约基线** | `openapi.yaml` 是唯一对外 API 契约，与代码端点对账（当前 81 path==81）；README 不逐条重抄 | #38 调研（`4d60f22`） |
+| **契约基线** | `openapi.yaml` 是唯一对外 API 契约，与代码端点对账（当前 106 path）；README 不逐条重抄。对账由 `OpenApiContractReconciliationTest` 双向锁定：任一侧多出或少一条都会红 | #38 调研（`4d60f22`） |
+| **培养联系人 ≠ 紧急联系人** | 培养联系人是党组织指派、负责培养考察该成员的党员（1~2 名，可被思想汇报/培养记录关联）；紧急联系人是 `tb_user_detail.contact_person`，属成员自填的个人信息，**成员本人可改**。二者不可互译、不可合并存储 | `tb_user_mentor`、#72 |
+| **参与范围 / 应到** | 参与范围是活动面向的人群（政治身份/年级/学院三维，留空=不限）；**应到**是参与范围匹配到的全员。活动无范围行时「全场开放」，应到**不可界定**（返回 null，不猜） | `tb_activity_identity`、`ActivityScopeService`、#76 |
+| **请假** | 「已批准的预期」：有理由、录入人、时间，独立成表；与签到（「已发生的事实」）生命周期不同，**不塞进 `sign_type`**。到场签到则以签到为准 | `tb_activity_leave`、#78 |
+| **签到二维码 token** | 存 Redis `sign:activity:{id}` 的随机串，TTL 默认 60 秒（`app.sign.qr-ttl`），过期即轮换。**一张有效码可供现场多人使用**——它证明「此刻在场」，不是一次性凭证；防重复靠 `(activity_id, user_id)` 唯一约束 | `SignQrTokenService`、#79 |
+| **批量结果 / 导入结果** | 两套「部分成功」结构，按定位键区分，**不合并**：`BatchResult{total,successCount,failCount,errors[{id,reason}]}` 按**业务 id** 定位（批量停用、调支部、设联系人）；`ImportResult{...errors[{row,reason}]}` 按**Excel 行号**定位。合并会让前端失去「第几行错了」这条信息 | `BatchResult`、`ImportResult`、#82 |
