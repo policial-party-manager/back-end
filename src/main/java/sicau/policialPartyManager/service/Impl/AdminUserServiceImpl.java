@@ -91,9 +91,19 @@ public class AdminUserServiceImpl implements AdminUserService {
                     .map(UserDetail::getUserId).collect(Collectors.toCollection(LinkedHashSet::new));
             // 关键字也可能命中 tb_user.username
             if (hasKeyword) {
-                candidateIds.addAll(userMapper.selectList(new LambdaQueryWrapper<User>()
+                Set<Long> usernameHitIds = userMapper.selectList(new LambdaQueryWrapper<User>()
                                 .like(User::getUsername, keyword.trim())).stream()
-                        .map(User::getId).collect(Collectors.toSet()));
+                        .map(User::getId).collect(Collectors.toSet());
+                // #44 阻塞项 2：用户名命中者必须也满足支部条件，否则选了支部 B 时
+                // 仍会混入其他支部的用户名命中者（列表与 total 偏离查询范围）。
+                // 同时若已指定 roleId，用户名命中者也要满足角色条件。
+                for (Long userId : usernameHitIds) {
+                    boolean branchOk = branchId == null || detailHasBranch(userId, branchId);
+                    boolean roleOk = roleId == null || userHasRole(userId, roleId);
+                    if (branchOk && roleOk) {
+                        candidateIds.add(userId);
+                    }
+                }
             }
         }
 
@@ -570,6 +580,18 @@ public class AdminUserServiceImpl implements AdminUserService {
         userRole.setUserId(userId);
         userRole.setRoleId(role.getId());
         userRoleMapper.insert(userRole);
+    }
+
+    /** 用户详情是否属于指定支部（无详情记录视为不满足）。 */
+    private boolean detailHasBranch(Long userId, Long branchId) {
+        UserDetail d = userDetailMapper.selectById(userId);
+        return d != null && branchId.equals(d.getBranchId());
+    }
+
+    /** 用户是否拥有指定角色。 */
+    private boolean userHasRole(Long userId, Long roleId) {
+        return userRoleMapper.selectCount(new LambdaQueryWrapper<UserRole>()
+                .eq(UserRole::getUserId, userId).eq(UserRole::getRoleId, roleId)) > 0;
     }
 
     private String cell(String[] row, int index) {

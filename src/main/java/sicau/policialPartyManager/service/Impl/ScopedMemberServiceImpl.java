@@ -269,17 +269,39 @@ public class ScopedMemberServiceImpl {
         if (StringUtils.hasText(keyword)) {
             for (User u : userMapper.selectList(new LambdaQueryWrapper<User>()
                     .like(User::getUsername, keyword.trim()))) {
-                if (branchId == null) {
+                UserDetail d = userDetailMapper.selectById(u.getId());
+                if (detailSatisfiesConditions(d, branchId, grade, major, college, identityId)) {
                     ids.add(u.getId());
-                } else {
-                    UserDetail d = userDetailMapper.selectById(u.getId());
-                    if (d != null && branchId.equals(d.getBranchId())) {
-                        ids.add(u.getId());
-                    }
                 }
             }
         }
         return ids;
+    }
+
+    /**
+     * 用户名命中的用户，其详情也必须满足全部已传详情条件，否则会绕过组合筛选。
+     * <p>#44 阻塞项 1：原逻辑在 {@code branchId == null}（超管）场景下直接把用户名命中者并入候选集，
+     * 导致「关键词＋政治身份/学院/年级/专业」等组合条件被绕过；学院/年级/专业是同一条源码路径，同样存在风险。
+     * 这里统一对用户名命中者重新校验所有详情条件（超管与支委分支一致）。
+     */
+    private boolean detailSatisfiesConditions(UserDetail d, Long branchId, String grade,
+                                              String major, String college, Long identityId) {
+        if (d == null) {
+            return false;
+        }
+        if (branchId != null && !branchId.equals(d.getBranchId())) {
+            return false;
+        }
+        if (StringUtils.hasText(grade) && !grade.trim().equals(d.getGrade())) {
+            return false;
+        }
+        if (StringUtils.hasText(major) && !major.trim().equals(d.getMajor())) {
+            return false;
+        }
+        if (StringUtils.hasText(college) && !college.trim().equals(d.getCollege())) {
+            return false;
+        }
+        return !(identityId != null && !identityId.equals(d.getIdentityId()));
     }
 
     private void ensureUnique(Long selfId, String phone, String email, String message) {
